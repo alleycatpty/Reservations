@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alley Cat 訂位</title>
 <style>
-  /* ================== 全局樣式 ================== */
   body {
     background-color: #000;
     color: #fff;
@@ -19,7 +18,11 @@
     align-items: center;
   }
 
-  header img, footer img { width: 100%; max-height: 180px; object-fit: cover; }
+  header img, footer img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+  }
 
   .container {
     background: #111;
@@ -31,9 +34,13 @@
     text-align: center;
   }
 
-  h1 { margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+  h1 {
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
 
-  /* ================== 日期小框，可左右拖動 ================== */
+  /* 日期容器，左右可拖動 */
   .dates-container {
     overflow-x: auto;
     white-space: nowrap;
@@ -41,13 +48,23 @@
     padding-bottom: 4px;
   }
 
-  .dates-container::-webkit-scrollbar { height: 6px; }
-  .dates-container::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-  .dates-container::-webkit-scrollbar-track { background: #222; }
+  .dates-container::-webkit-scrollbar {
+    height: 6px;
+  }
 
+  .dates-container::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+  }
+
+  .dates-container::-webkit-scrollbar-track {
+    background: #222;
+  }
+
+  /* 日期按鈕小容器 */
   .date-btn {
     display: inline-block;
-    min-width: 60px;
+    min-width: 60px;   /* 比字大一點 */
     padding: 6px 8px;
     margin-right: 6px;
     border-radius: 6px;
@@ -57,11 +74,16 @@
     text-align: center;
     cursor: pointer;
     font-size: 14px;
+    transition: all 0.3s;
   }
 
-  .date-btn.active { background: #ff8800; border-color: #ff8800; color: #000; }
+  .date-btn.active {
+    background: #ff8800;
+    border-color: #ff8800;
+    color: #000;
+  }
 
-  /* ================== 時間小框，自動換行 ================== */
+  /* 時間按鈕小容器，自動換行 */
   .times {
     display: flex;
     flex-wrap: wrap;
@@ -80,11 +102,15 @@
     font-size: 14px;
     min-width: 50px;
     text-align: center;
+    transition: all 0.3s;
   }
 
-  .time-btn.active { background: #ff8800; border-color: #ff8800; color: #000; }
+  .time-btn.active {
+    background: #ff8800;
+    border-color: #ff8800;
+    color: #000;
+  }
 
-  /* ================== 表單欄位 ================== */
   input, textarea {
     width: 100%;
     margin: 6px 0;
@@ -95,7 +121,6 @@
     color: #fff;
   }
 
-  /* ================== 送出按鈕 ================== */
   button {
     margin-top: 12px;
     padding: 10px;
@@ -129,7 +154,9 @@
     animation: spin 0.8s linear infinite;
   }
 
-  @keyframes spin { 100% { transform: translate(50%, -50%) rotate(360deg); } }
+  @keyframes spin {
+    100% { transform: translate(50%, -50%) rotate(360deg); }
+  }
 
   .message { margin-top: 16px; color: #90ee90; font-size: 14px; }
 </style>
@@ -165,10 +192,9 @@
 <footer><img src="bottom.jpg" alt="Bottom Image"></footer>
 
 <script>
-  // ================== 配置 ==================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2llFRbDbH5dx2Jxc-EMBxxmGuqe8FiX2ocmQvXdhHcV4AJh2FlLg9s1UaZykwfLW0NQ/exec";
 
-  // ================== 多國語言 ==================
+  // 自動偵測瀏覽器語系
   const lang = navigator.language.slice(0,2);
   const i18n = {
     en: { title: "Alley Cat Reservation", date: "Select Date", time: "Select Time", success: "Thank you for your booking!" },
@@ -186,63 +212,51 @@
   document.getElementById('dateLabel').textContent = L.date;
   document.getElementById('timeLabel').textContent = L.time;
 
-  // ================== 變數 ==================
   let selectedDate = null, selectedTime = null;
 
-  // ================== 取得營業日期 ==================
+  // 取得營業日期
   async function loadDates() {
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
-      const data = await res.json();
-      const datesDiv = document.getElementById('dates');
-      datesDiv.innerHTML = "";
+    const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
+    const data = await res.json();
+    const datesDiv = document.getElementById('dates');
+    datesDiv.innerHTML = "";
 
-      // 建立日期按鈕
-      data.dates.forEach(d => {
-        const btn = document.createElement('button');
-        btn.className = 'date-btn';
-        btn.textContent = d.display;
-        btn.title = d.date; // tooltip 顯示完整日期
-        btn.onclick = () => {
-          // 清除所有 active
-          document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedDate = d.date;
-          loadTimes(d.date);
-        };
-        datesDiv.appendChild(btn);
-      });
-    } catch(e) {
-      console.error("取得日期失敗:", e);
-    }
+    data.dates.forEach(d => {
+      const btn = document.createElement('button');
+      btn.className = 'date-btn';
+      btn.textContent = d.display; // 日期文字顯示 MM/dd
+      btn.title = d.date; // 可以顯示完整日期
+      btn.onclick = () => {
+        document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedDate = d.date;
+        loadTimes(d.date); // 點日期後載入時間
+      };
+      datesDiv.appendChild(btn);
+    });
   }
 
-  // ================== 取得時間段 ==================
+  // 根據選擇日期生成時間
   async function loadTimes(date) {
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
-      const data = await res.json();
-      const timesDiv = document.getElementById('times');
-      timesDiv.innerHTML = "";
+    const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
+    const data = await res.json();
+    const timesDiv = document.getElementById('times');
+    timesDiv.innerHTML = "";
 
-      // 建立時間按鈕
-      data.times.forEach(t => {
-        const btn = document.createElement('button');
-        btn.className = 'time-btn';
-        btn.textContent = t.time; // 只顯示 HH:MM
-        btn.onclick = () => {
-          document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedTime = t.time;
-        };
-        timesDiv.appendChild(btn);
-      });
-    } catch(e) {
-      console.error("取得時間失敗:", e);
-    }
+    data.times.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'time-btn';
+      btn.textContent = t.time; // 僅顯示 HH:MM
+      btn.onclick = () => {
+        document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTime = t.time;
+      };
+      timesDiv.appendChild(btn);
+    });
   }
 
-  // ================== 表單送出 ==================
+  // 表單送出
   document.getElementById('submitBtn').onclick = async () => {
     const btn = document.getElementById('submitBtn');
     const msg = document.getElementById('message');
@@ -254,7 +268,6 @@
     const people = document.getElementById('people').value.trim();
     const note = document.getElementById('note').value.trim();
 
-    // 驗證必填
     if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
       msg.textContent = "請填寫所有必填欄位！";
       msg.style.color = "tomato";
@@ -286,8 +299,7 @@
     }
   };
 
-  // ================== 初始化 ==================
-  loadDates();
+  loadDates(); // 初始化日期
 </script>
 </body>
 </html>
