@@ -1,195 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alley Cat 訂位</title>
   <style>
     body {
-      background: #000;
+      background-color: #000;
       color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    img.logo {
-      width: 100px;
-      margin-bottom: 10px;
+    header img, footer img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
     }
 
     .container {
       background: #111;
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 20px;
-      max-width: 400px;
-      margin: auto;
+      width: 90%;
+      max-width: 450px;
       box-shadow: 0 0 10px rgba(255,255,255,0.1);
+      text-align: center;
     }
 
-    h1 { font-size: 1.5em; margin: 10px 0 20px; }
+    h1 {
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-    .date-container, .time-container {
+    .dates, .times {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 8px;
-      margin-bottom: 15px;
+      justify-content: center;
+      margin: 12px 0;
     }
 
     .date-btn, .time-btn {
-      padding: 8px 14px;
-      border: 1px solid #888;
-      border-radius: 8px;
       background: #222;
+      border: 1px solid #444;
       color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.3s;
     }
 
-    .selected {
-      background: #f90;
-      color: #000;
+    .date-btn.active, .time-btn.active {
+      background: #ff8800;
+      border-color: #ff8800;
     }
 
     input, textarea {
       width: 100%;
       margin: 6px 0;
       padding: 8px;
-      border-radius: 6px;
-      border: none;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #222;
+      color: #fff;
     }
 
     button {
-      margin-top: 10px;
-      padding: 10px 20px;
+      margin-top: 12px;
+      padding: 10px;
+      width: 100%;
       border: none;
       border-radius: 6px;
-      background: #f90;
-      color: #000;
-      font-weight: bold;
+      background-color: #ff8800;
+      color: #fff;
+      font-size: 16px;
       cursor: pointer;
+      transition: opacity 0.3s;
     }
 
-    .spinner {
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      border-top: 3px solid #000;
+    button.loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    button.loading::after {
+      content: "";
+      position: absolute;
+      right: 50%;
+      top: 50%;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
       border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-left: 5px;
+      transform: translate(50%, -50%);
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      100% { transform: translate(50%, -50%) rotate(360deg); }
+    }
+
+    .message {
+      margin-top: 16px;
+      color: #90ee90;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <img src="your_logo.png" alt="Logo" class="logo">
+  <header><img src="top.jpg" alt="Top Image"></header>
   <div class="container">
-    <h1>Alley Cat 訂位</h1>
+    <img src="logo.png" alt="Alley Cat Logo" style="max-width:120px;">
+    <h1 id="title">Alley Cat 訂位</h1>
 
-    <div id="dateContainer" class="date-container"></div>
-    <div id="timeContainer" class="time-container"></div>
+    <div id="date-section">
+      <p id="dateLabel"></p>
+      <div class="dates" id="dates"></div>
+    </div>
 
-    <input id="name" type="text" placeholder="姓名" required>
-    <input id="phone" type="tel" placeholder="電話" required>
-    <input id="email" type="email" placeholder="Email" required>
-    <input id="people" type="number" placeholder="人數" required min="1">
-    <textarea id="note" placeholder="備註（非必填）"></textarea>
+    <div id="time-section">
+      <p id="timeLabel"></p>
+      <div class="times" id="times"></div>
+    </div>
 
-    <button id="submitBtn" onclick="submitForm()">送出訂位</button>
-    <p id="msg"></p>
+    <input type="text" id="name" placeholder="姓名">
+    <input type="tel" id="phone" placeholder="電話">
+    <input type="email" id="email" placeholder="Email">
+    <input type="number" id="people" placeholder="人數">
+    <textarea id="note" placeholder="備註 (可不填)"></textarea>
+
+    <button id="submitBtn">送出</button>
+    <div class="message" id="message"></div>
   </div>
+  <footer><img src="bottom.jpg" alt="Bottom Image"></footer>
 
   <script>
     // 🔗 改成你的 GAS 部署網址
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxMmk-ofJQ25VxjVzfkM7sAPXg0QkZx5J-RbGjzfGgCst5jWdhkD8Oco0CBh66hv6yNHQ/exec";
+    const SCRIPT_URL = = "https://script.google.com/macros/s/AKfycbxMmk-ofJQ25VxjVzfkM7sAPXg0QkZx5J-RbGjzfGgCst5jWdhkD8Oco0CBh66hv6yNHQ/exec";
 
-let selectedDate = "";
-    let selectedTime = "";
+const lang = navigator.language.slice(0,2);
 
+    const i18n = {
+      en: { title: "Alley Cat Reservation", date: "Select Date", time: "Select Time", success: "Thank you for your booking!" },
+      zh: { title: "Alley Cat 訂位", date: "選擇日期", time: "選擇時間", success: "感謝您的訂位！" },
+      ja: { title: "Alley Cat 予約", date: "日付を選択", time: "時間を選択", success: "ご予約ありがとうございます！" },
+      fr: { title: "Réservation Alley Cat", date: "Sélectionnez une date", time: "Sélectionnez l'heure", success: "Merci pour votre réservation !" },
+      ko: { title: "Alley Cat 예약", date: "날짜 선택", time: "시간 선택", success: "예약해 주셔서 감사합니다!" },
+      de: { title: "Alley Cat Reservierung", date: "Datum auswählen", time: "Zeit auswählen", success: "Danke für Ihre Reservierung!" },
+      es: { title: "Reserva Alley Cat", date: "Seleccionar fecha", time: "Seleccionar hora", success: "¡Gracias por su reserva!" },
+      th: { title: "การจอง Alley Cat", date: "เลือกวันที่", time: "เลือกเวลา", success: "ขอบคุณสำหรับการจอง!" }
+    };
+
+    const L = i18n[lang] || i18n.en;
+    document.getElementById('title').textContent = L.title;
+    document.getElementById('dateLabel').textContent = L.date;
+    document.getElementById('timeLabel').textContent = L.time;
+
+    let selectedDate = null, selectedTime = null;
+
+    // 取得營業日期
     async function loadDates() {
-      const res = await fetch(`${GAS_URL}?action=getAvailableDates`);
+      const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
       const data = await res.json();
-      const container = document.getElementById("dateContainer");
-      container.innerHTML = "";
-      data.forEach(date => {
-        const btn = document.createElement("div");
-        btn.className = "date-btn";
-        btn.textContent = date;
+      const datesDiv = document.getElementById('dates');
+      datesDiv.innerHTML = "";
+
+      data.dates.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'date-btn';
+        btn.textContent = `${d.display}`;
         btn.onclick = () => {
-          selectedDate = date;
-          document.querySelectorAll(".date-btn").forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-          loadTimes(date);
+          document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedDate = d.date;
+          loadTimes(d.date);
         };
-        container.appendChild(btn);
+        datesDiv.appendChild(btn);
       });
     }
 
+    // 根據選擇日期生成時間
     async function loadTimes(date) {
-      const res = await fetch(`${GAS_URL}?action=getAvailableTimes&date=${encodeURIComponent(date)}`);
-      const times = await res.json();
-      const container = document.getElementById("timeContainer");
-      container.innerHTML = "";
-      times.forEach(time => {
-        const btn = document.createElement("div");
-        btn.className = "time-btn";
-        btn.textContent = time;
+      const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
+      const data = await res.json();
+      const timesDiv = document.getElementById('times');
+      timesDiv.innerHTML = "";
+
+      data.times.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'time-btn';
+        btn.textContent = t;
         btn.onclick = () => {
-          selectedTime = time;
-          document.querySelectorAll(".time-btn").forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
+          document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedTime = t;
         };
-        container.appendChild(btn);
+        timesDiv.appendChild(btn);
       });
     }
 
-    async function submitForm() {
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const people = document.getElementById("people").value.trim();
-      const note = document.getElementById("note").value.trim();
-      const msg = document.getElementById("msg");
-      const btn = document.getElementById("submitBtn");
+    // 表單送出
+    document.getElementById('submitBtn').onclick = async () => {
+      const btn = document.getElementById('submitBtn');
+      const msg = document.getElementById('message');
+      msg.textContent = "";
 
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const people = document.getElementById('people').value.trim();
+      const note = document.getElementById('note').value.trim();
+
+      // 基本欄位驗證
       if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
-        msg.textContent = "⚠️ 請完整填寫所有必填欄位。";
-        msg.style.color = "orange";
+        msg.textContent = "請填寫所有必填欄位！";
+        msg.style.color = "tomato";
         return;
       }
 
-      btn.innerHTML = `送出中 <span class="spinner"></span>`;
-      btn.disabled = true;
-      msg.textContent = "";
+      btn.classList.add("loading");
+      const payload = { 
+        action: "submitReservation", 
+        date: selectedDate, 
+        time: selectedTime, 
+        name, phone, email, people, note 
+      };
 
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "addReservation", name, phone, email, people, note, date: selectedDate, time: selectedTime }),
-        });
-        const result = await res.json();
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      btn.classList.remove("loading");
 
-        if (result.status === "success") {
-          msg.textContent = "✅ 感謝您的訂位！我們將盡快與您確認。";
-          msg.style.color = "lightgreen";
-        } else {
-          msg.textContent = "❌ 發生錯誤，請稍後再試。";
-          msg.style.color = "red";
-        }
-      } catch (err) {
-        msg.textContent = "❌ 系統連線錯誤，請稍後再試。";
-        msg.style.color = "red";
-      }
-
-      btn.innerHTML = "送出訂位";
-      btn.disabled = false;
-    }
+      msg.textContent = result.success ? L.success : "送出失敗，請稍後再試。";
+      msg.style.color = result.success ? "lightgreen" : "tomato";
+    };
 
     loadDates();
   </script>
