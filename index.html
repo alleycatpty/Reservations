@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alley Cat 訂位</title>
 <style>
+  /* ================== 全局樣式 ================== */
   body {
     background-color: #000;
     color: #fff;
@@ -17,7 +18,9 @@
     justify-content: space-between;
     align-items: center;
   }
+
   header img, footer img { width: 100%; max-height: 180px; object-fit: cover; }
+
   .container {
     background: #111;
     border-radius: 16px;
@@ -27,18 +30,61 @@
     box-shadow: 0 0 10px rgba(255,255,255,0.1);
     text-align: center;
   }
+
   h1 { margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-  .dates, .times { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
-  .date-btn, .time-btn {
-    background: #222;
-    border: 1px solid #444;
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
+
+  /* ================== 日期小框，可左右拖動 ================== */
+  .dates-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    margin: 12px 0;
+    padding-bottom: 4px;
   }
-  .date-btn.active, .time-btn.active { background: #ff8800; border-color: #ff8800; }
+
+  .dates-container::-webkit-scrollbar { height: 6px; }
+  .dates-container::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+  .dates-container::-webkit-scrollbar-track { background: #222; }
+
+  .date-btn {
+    display: inline-block;
+    min-width: 60px;
+    padding: 6px 8px;
+    margin-right: 6px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .date-btn.active { background: #ff8800; border-color: #ff8800; color: #000; }
+
+  /* ================== 時間小框，自動換行 ================== */
+  .times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin: 12px 0;
+  }
+
+  .time-btn {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 50px;
+    text-align: center;
+  }
+
+  .time-btn.active { background: #ff8800; border-color: #ff8800; color: #000; }
+
+  /* ================== 表單欄位 ================== */
   input, textarea {
     width: 100%;
     margin: 6px 0;
@@ -48,6 +94,8 @@
     background: #222;
     color: #fff;
   }
+
+  /* ================== 送出按鈕 ================== */
   button {
     margin-top: 12px;
     padding: 10px;
@@ -60,11 +108,13 @@
     cursor: pointer;
     transition: opacity 0.3s;
   }
+
   button.loading {
     position: relative;
     pointer-events: none;
     opacity: 0.7;
   }
+
   button.loading::after {
     content: "";
     position: absolute;
@@ -78,7 +128,9 @@
     transform: translate(50%, -50%);
     animation: spin 0.8s linear infinite;
   }
+
   @keyframes spin { 100% { transform: translate(50%, -50%) rotate(360deg); } }
+
   .message { margin-top: 16px; color: #90ee90; font-size: 14px; }
 </style>
 </head>
@@ -88,16 +140,19 @@
   <img src="logo.png" alt="Alley Cat Logo" style="max-width:120px;">
   <h1 id="title">Alley Cat 訂位</h1>
 
+  <!-- 日期區塊 -->
   <div id="date-section">
     <p id="dateLabel"></p>
-    <div class="dates" id="dates"></div>
+    <div class="dates-container" id="dates"></div>
   </div>
 
+  <!-- 時間區塊 -->
   <div id="time-section">
     <p id="timeLabel"></p>
     <div class="times" id="times"></div>
   </div>
 
+  <!-- 表單欄位 -->
   <input type="text" id="name" placeholder="姓名">
   <input type="tel" id="phone" placeholder="電話">
   <input type="email" id="email" placeholder="Email">
@@ -110,8 +165,10 @@
 <footer><img src="bottom.jpg" alt="Bottom Image"></footer>
 
 <script>
+  // ================== 配置 ==================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2llFRbDbH5dx2Jxc-EMBxxmGuqe8FiX2ocmQvXdhHcV4AJh2FlLg9s1UaZykwfLW0NQ/exec";
 
+  // ================== 多國語言 ==================
   const lang = navigator.language.slice(0,2);
   const i18n = {
     en: { title: "Alley Cat Reservation", date: "Select Date", time: "Select Time", success: "Thank you for your booking!" },
@@ -124,54 +181,68 @@
     th: { title: "การจอง Alley Cat", date: "เลือกวันที่", time: "เลือกเวลา", success: "ขอบคุณสำหรับการจอง!" }
   };
   const L = i18n[lang] || i18n.en;
+
   document.getElementById('title').textContent = L.title;
   document.getElementById('dateLabel').textContent = L.date;
   document.getElementById('timeLabel').textContent = L.time;
 
+  // ================== 變數 ==================
   let selectedDate = null, selectedTime = null;
 
-  // 取得營業日期
+  // ================== 取得營業日期 ==================
   async function loadDates() {
-    const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
-    const data = await res.json();
-    const datesDiv = document.getElementById('dates');
-    datesDiv.innerHTML = "";
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
+      const data = await res.json();
+      const datesDiv = document.getElementById('dates');
+      datesDiv.innerHTML = "";
 
-    data.dates.forEach(d => {
-      const btn = document.createElement('button');
-      btn.className = 'date-btn';
-      btn.textContent = d.display;
-      btn.onclick = () => {
-        document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedDate = d.date;
-        loadTimes(d.date);
-      };
-      datesDiv.appendChild(btn);
-    });
+      // 建立日期按鈕
+      data.dates.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'date-btn';
+        btn.textContent = d.display;
+        btn.title = d.date; // tooltip 顯示完整日期
+        btn.onclick = () => {
+          // 清除所有 active
+          document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedDate = d.date;
+          loadTimes(d.date);
+        };
+        datesDiv.appendChild(btn);
+      });
+    } catch(e) {
+      console.error("取得日期失敗:", e);
+    }
   }
 
-  // 根據選擇日期生成時間
+  // ================== 取得時間段 ==================
   async function loadTimes(date) {
-    const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
-    const data = await res.json();
-    const timesDiv = document.getElementById('times');
-    timesDiv.innerHTML = "";
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
+      const data = await res.json();
+      const timesDiv = document.getElementById('times');
+      timesDiv.innerHTML = "";
 
-    data.times.forEach(t => {
-      const btn = document.createElement('button');
-      btn.className = 'time-btn';
-      btn.textContent = t.time; // 使用 t.time
-      btn.onclick = () => {
-        document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedTime = t.time;
-      };
-      timesDiv.appendChild(btn);
-    });
+      // 建立時間按鈕
+      data.times.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'time-btn';
+        btn.textContent = t.time; // 只顯示 HH:MM
+        btn.onclick = () => {
+          document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedTime = t.time;
+        };
+        timesDiv.appendChild(btn);
+      });
+    } catch(e) {
+      console.error("取得時間失敗:", e);
+    }
   }
 
-  // 表單送出
+  // ================== 表單送出 ==================
   document.getElementById('submitBtn').onclick = async () => {
     const btn = document.getElementById('submitBtn');
     const msg = document.getElementById('message');
@@ -183,6 +254,7 @@
     const people = document.getElementById('people').value.trim();
     const note = document.getElementById('note').value.trim();
 
+    // 驗證必填
     if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
       msg.textContent = "請填寫所有必填欄位！";
       msg.style.color = "tomato";
@@ -214,6 +286,7 @@
     }
   };
 
+  // ================== 初始化 ==================
   loadDates();
 </script>
 </body>
