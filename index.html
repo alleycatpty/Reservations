@@ -40,76 +40,59 @@
     letter-spacing: 1px;
   }
 
-  /* 日期容器，左右可拖動 */
-  .dates-container {
-    overflow-x: auto;
-    white-space: nowrap;
-    margin: 12px 0;
-    padding-bottom: 4px;
-  }
+  /* 日期按鈕小容器，雙行顯示 DD/MM 與 星期 */
+.date-btn {
+  display: inline-flex;           /* 改成 flex */
+  flex-direction: column;         /* 上下排列 */
+  align-items: center;            /* 置中對齊 */
+  justify-content: center;        /* 垂直置中 */
+  min-width: 50px;                /* 比字大一點 */
+  height: 50px;                   /* 固定高度 */
+  padding: 4px 4px;               /* 內距 */
+  margin: 4px;                    /* 外距，讓左右可滑動 */
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #222;
+  color: #fff;
+  font-size: 12px;                /* 小字 */
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.date-btn span {
+  line-height: 1.2;               /* 上下行距 */
+}
+.date-btn.active {
+  background: #ff8800;
+  border-color: #ff8800;
+  color: #000;
+}
 
-  .dates-container::-webkit-scrollbar {
-    height: 6px;
-  }
+/* 時間按鈕小容器，自動換行 */
+.times {
+  display: flex;
+  flex-wrap: wrap;                /* 自動換行 */
+  gap: 6px;
+  justify-content: center;
+  margin: 12px 0;
+}
+.time-btn {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #222;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;               /* 小字 */
+  min-width: 50px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.time-btn.active {
+  background: #ff8800;
+  border-color: #ff8800;
+  color: #000;
+}
 
-  .dates-container::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 3px;
-  }
-
-  .dates-container::-webkit-scrollbar-track {
-    background: #222;
-  }
-
-  /* 日期按鈕小容器 */
-  .date-btn {
-    display: inline-block;
-    min-width: 60px;   /* 比字大一點 */
-    padding: 6px 8px;
-    margin-right: 6px;
-    border-radius: 6px;
-    border: 1px solid #555;
-    background: #222;
-    color: #fff;
-    text-align: center;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s;
-  }
-
-  .date-btn.active {
-    background: #ff8800;
-    border-color: #ff8800;
-    color: #000;
-  }
-
-  /* 時間按鈕小容器，自動換行 */
-  .times {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
-    margin: 12px 0;
-  }
-
-  .time-btn {
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid #555;
-    background: #222;
-    color: #fff;
-    cursor: pointer;
-    font-size: 14px;
-    min-width: 50px;
-    text-align: center;
-    transition: all 0.3s;
-  }
-
-  .time-btn.active {
-    background: #ff8800;
-    border-color: #ff8800;
-    color: #000;
-  }
 
   input, textarea {
     width: 100%;
