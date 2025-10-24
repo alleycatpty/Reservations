@@ -207,7 +207,7 @@
     data.dates.forEach(d => {
       const btn = document.createElement('button');
       btn.className = 'date-btn';
-      btn.textContent = d.display; // 日期文字顯示 MM/dd
+      btn.innerHTML = `<span>${d.display}</span><span>${d.weekday}</span>`; // 日期文字顯示 MM/dd
       btn.title = d.date; // 可以顯示完整日期
       btn.onclick = () => {
         document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
