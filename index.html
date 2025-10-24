@@ -1,209 +1,282 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Alley Cat 訂位</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alley Cat Booking</title>
   <style>
     body {
       margin: 0;
       background-color: #000;
       color: #fff;
-      font-family: 'Noto Sans TC', sans-serif;
+      font-family: "Poppins", sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    header img {
+      width: 120px;
+      border-radius: 50%;
+    }
+
+    h1 {
+      margin: 10px 0;
+      font-size: 1.8em;
+      text-transform: uppercase;
     }
 
     .top-img, .bottom-img {
       width: 100%;
-      height: 150px;
+      height: 120px;
       object-fit: cover;
     }
 
     .container {
-      background: rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 20px;
       width: 90%;
-      max-width: 480px;
+      max-width: 450px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 16px;
       text-align: center;
-      box-shadow: 0 0 15px rgba(255,255,255,0.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     }
 
-    .logo {
-      width: 100px;
-      height: 100px;
-      object-fit: contain;
-      margin: 10px auto 5px;
-      display: block;
-    }
-
-    h1 {
-      font-size: 1.6em;
-      margin-bottom: 15px;
-    }
-
-    /* 日期橫向滑動 */
-    .scroll-area {
+    .date-scroll {
       display: flex;
       overflow-x: auto;
       gap: 10px;
-      padding: 10px 0;
-      scroll-snap-type: x mandatory;
+      margin-bottom: 15px;
+      padding-bottom: 5px;
     }
 
-    .scroll-area::-webkit-scrollbar {
-      display: none;
-    }
-
-    .option {
-      flex: 0 0 auto;
-      background: rgba(255,255,255,0.1);
-      padding: 10px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      scroll-snap-align: start;
+    .date-scroll button {
+      background: #222;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
       white-space: nowrap;
-      transition: background 0.3s;
     }
 
-    input[type="radio"]:checked + label {
-      background: #fff;
+    .date-scroll button.active {
+      background: #ffcc00;
       color: #000;
     }
 
-    /* 時間：自動換行排列 */
     .time-grid {
       display: flex;
       flex-wrap: wrap;
+      gap: 8px;
       justify-content: center;
-      gap: 10px;
-      padding: 10px 0;
+      margin-bottom: 20px;
     }
 
-    .time-grid label {
-      background: rgba(255,255,255,0.1);
-      padding: 10px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background 0.3s;
+    .time-grid button {
+      background: #222;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
     }
 
-    input[type="radio"]:checked + label {
-      background: #fff;
+    .time-grid button.active {
+      background: #ffcc00;
       color: #000;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
     }
 
     input, textarea {
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
       width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
     }
 
-    button {
-      background: #fff;
+    button.submit {
+      background: #ffcc00;
       color: #000;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
       font-weight: bold;
-      cursor: pointer;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
       margin-top: 10px;
     }
 
-    .thanks {
-      display: none;
-      font-size: 1.2em;
+    .bottom-message {
       margin-top: 15px;
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.4em; }
+      .container { padding: 15px; }
     }
   </style>
 </head>
 <body>
-  <img src="https://picsum.photos/1200/300?random=1" class="top-img" alt="Top image">
-  
+  <img src="https://placehold.co/600x120?text=Top+Image" class="top-img">
+
+  <header>
+    <img src="https://placehold.co/120x120?text=Logo" alt="Logo">
+    <h1 id="title">Alley Cat 訂位</h1>
+  </header>
+
   <div class="container">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg" alt="Alley Cat Logo" class="logo">
+    <div class="date-scroll" id="dateButtons"></div>
+    <div class="time-grid" id="timeButtons"></div>
 
-    <h1>Alley Cat 訂位</h1>
+    <input id="name" placeholder="姓名">
+    <input id="phone" placeholder="電話">
+    <input id="email" placeholder="Email">
+    <input id="people" type="number" placeholder="人數">
+    <textarea id="note" placeholder="備註"></textarea>
 
-    <!-- 日期 -->
-    <div>選擇日期</div>
-    <div class="scroll-area" id="date-options">
-      <input type="radio" id="d0" name="date" value="25/10" hidden checked>
-      <label for="d0" class="option">Fri<br>25/10</label>
-      <input type="radio" id="d1" name="date" value="26/10" hidden>
-      <label for="d1" class="option">Sat<br>26/10</label>
-      <input type="radio" id="d2" name="date" value="27/10" hidden>
-      <label for="d2" class="option">Sun<br>27/10</label>
-      <input type="radio" id="d3" name="date" value="28/10" hidden>
-      <label for="d3" class="option">Mon<br>28/10</label>
-      <input type="radio" id="d4" name="date" value="29/10" hidden>
-      <label for="d4" class="option">Tue<br>29/10</label>
-      <input type="radio" id="d5" name="date" value="30/10" hidden>
-      <label for="d5" class="option">Wed<br>30/10</label>
-      <input type="radio" id="d6" name="date" value="31/10" hidden>
-      <label for="d6" class="option">Thu<br>31/10</label>
-    </div>
+    <button class="submit" id="submitBtn">送出訂位</button>
 
-    <!-- 時間 -->
-    <div>選擇時間</div>
-    <div class="time-grid" id="time-options">
-      <input type="radio" id="t1" name="time" value="12:00" hidden checked><label for="t1">12:00</label>
-      <input type="radio" id="t2" name="time" value="12:15" hidden><label for="t2">12:15</label>
-      <input type="radio" id="t3" name="time" value="12:30" hidden><label for="t3">12:30</label>
-      <input type="radio" id="t4" name="time" value="12:45" hidden><label for="t4">12:45</label>
-      <input type="radio" id="t5" name="time" value="13:00" hidden><label for="t5">13:00</label>
-      <input type="radio" id="t6" name="time" value="13:15" hidden><label for="t6">13:15</label>
-      <input type="radio" id="t7" name="time" value="13:30" hidden><label for="t7">13:30</label>
-      <input type="radio" id="t8" name="time" value="13:45" hidden><label for="t8">13:45</label>
-      <input type="radio" id="t9" name="time" value="14:00" hidden><label for="t9">14:00</label>
-      <input type="radio" id="t10" name="time" value="14:15" hidden><label for="t10">14:15</label>
-      <input type="radio" id="t11" name="time" value="14:30" hidden><label for="t11">14:30</label>
-      <input type="radio" id="t12" name="time" value="14:45" hidden><label for="t12">14:45</label>
-    </div>
-
-    <!-- 表單 -->
-    <form id="bookingForm">
-      <input type="text" name="name" placeholder="姓名" required>
-      <input type="tel" name="phone" placeholder="電話" required>
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="number" name="people" placeholder="人數" min="1" required>
-      <textarea name="note" placeholder="備註"></textarea>
-      <button type="submit">送出訂位</button>
-    </form>
-
-    <div class="thanks" id="thanks-msg">
-      感謝您的訂位！我們將盡快與您聯繫確認。
-    </div>
+    <div class="bottom-message" id="thankyou">感謝您的訂位！我們將盡快與您確認。</div>
   </div>
 
-  <img src="https://picsum.photos/1200/300?random=2" class="bottom-img" alt="Bottom image">
+  <img src="https://placehold.co/600x120?text=Bottom+Image" class="bottom-img">
 
   <script>
-    const form = document.getElementById('bookingForm');
-    const thanks = document.getElementById('thanks-msg');
+    // 🌐 多語言字典
+    const translations = {
+      "zh-TW": {
+        title: "Alley Cat 訂位",
+        name: "姓名",
+        phone: "電話",
+        email: "電子郵件",
+        people: "人數",
+        note: "備註",
+        submit: "送出訂位",
+        thankyou: "感謝您的訂位！我們將盡快與您確認。"
+      },
+      "en": {
+        title: "Alley Cat Reservation",
+        name: "Name",
+        phone: "Phone",
+        email: "Email",
+        people: "People",
+        note: "Note",
+        submit: "Submit Reservation",
+        thankyou: "Thank you for your booking! We’ll confirm shortly."
+      },
+      "ja": {
+        title: "Alley Cat 予約",
+        name: "お名前",
+        phone: "電話番号",
+        email: "メール",
+        people: "人数",
+        note: "備考",
+        submit: "予約送信",
+        thankyou: "ご予約ありがとうございます。確認いたします。"
+      },
+      "ko": {
+        title: "Alley Cat 예약",
+        name: "이름",
+        phone: "전화번호",
+        email: "이메일",
+        people: "인원수",
+        note: "비고",
+        submit: "예약 보내기",
+        thankyou: "예약해 주셔서 감사합니다. 곧 확인드리겠습니다."
+      },
+      "th": {
+        title: "จองโต๊ะ Alley Cat",
+        name: "ชื่อ",
+        phone: "โทรศัพท์",
+        email: "อีเมล",
+        people: "จำนวนคน",
+        note: "หมายเหตุ",
+        submit: "ส่งการจอง",
+        thankyou: "ขอบคุณสำหรับการจอง! เราจะยืนยันโดยเร็วที่สุด"
+      },
+      "fr": {
+        title: "Réservation Alley Cat",
+        name: "Nom",
+        phone: "Téléphone",
+        email: "E-mail",
+        people: "Personnes",
+        note: "Remarque",
+        submit: "Envoyer la réservation",
+        thankyou: "Merci pour votre réservation ! Nous confirmerons bientôt."
+      },
+      "es": {
+        title: "Reserva Alley Cat",
+        name: "Nombre",
+        phone: "Teléfono",
+        email: "Correo",
+        people: "Personas",
+        note: "Nota",
+        submit: "Enviar reserva",
+        thankyou: "Gracias por su reserva. Confirmaremos pronto."
+      },
+      "de": {
+        title: "Alley Cat Reservierung",
+        name: "Name",
+        phone: "Telefon",
+        email: "E-Mail",
+        people: "Personen",
+        note: "Anmerkung",
+        submit: "Reservierung senden",
+        thankyou: "Danke für Ihre Reservierung! Wir bestätigen in Kürze."
+      }
+    };
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // 🌍 根據系統語言選擇翻譯
+    const userLang = navigator.language || "en";
+    const langKey = Object.keys(translations).find(k => userLang.includes(k)) || "en";
+    const t = translations[langKey];
 
-      const data = Object.fromEntries(new FormData(form).entries());
-      data.date = document.querySelector('input[name="date"]:checked').value;
-      data.time = document.querySelector('input[name="time"]:checked').value;
+    // ✏️ 套用文字
+    document.getElementById("title").innerText = t.title;
+    document.getElementById("name").placeholder = t.name;
+    document.getElementById("phone").placeholder = t.phone;
+    document.getElementById("email").placeholder = t.email;
+    document.getElementById("people").placeholder = t.people;
+    document.getElementById("note").placeholder = t.note;
+    document.getElementById("submitBtn").innerText = t.submit;
+    document.getElementById("thankyou").innerText = t.thankyou;
 
-      console.log('送出資料:', data);
+    // 📅 日期生成 (7 天)
+    const dateContainer = document.getElementById("dateButtons");
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const dayName = d.toLocaleDateString(langKey, { weekday: 'short' });
+      const btn = document.createElement("button");
+      btn.textContent = `${dayName} ${d.getDate()}/${d.getMonth() + 1}`;
+      btn.onclick = () => {
+        document.querySelectorAll("#dateButtons button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      };
+      if (i === 0) btn.classList.add("active");
+      dateContainer.appendChild(btn);
+    }
 
-      form.style.display = 'none';
-      thanks.style.display = 'block';
+    // ⏰ 時間段（12個）
+    const timeContainer = document.getElementById("timeButtons");
+    const times = ["12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45"];
+    times.forEach(ti => {
+      const btn = document.createElement("button");
+      btn.textContent = ti;
+      btn.onclick = () => {
+        document.querySelectorAll("#timeButtons button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      };
+      timeContainer.appendChild(btn);
     });
   </script>
 </body>
