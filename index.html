@@ -187,8 +187,19 @@
   // ================== 選擇狀態變數 ==================
   let selectedDate = null, selectedTime = null;
 
- // ================== 取得營業日期 (GAS) ==================
+// ================== 取得營業日期 (GAS) ==================
 async function loadDates() {
+  const datesDiv = document.getElementById('dates');
+  datesDiv.innerHTML = ""; // 清空原有按鈕
+
+  // 🔹 顯示讀取動畫
+  const loading = document.createElement('div');
+  loading.textContent = "載入日期中...";
+  loading.style.color = "#ff8800";
+  loading.style.textAlign = "center";
+  loading.style.width = "100%";
+  datesDiv.appendChild(loading);
+
   try {
     // 🔹 從 GAS 取得日期資料
     const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
@@ -196,8 +207,13 @@ async function loadDates() {
 
     console.log("GAS 回傳日期資料:", data); // 🔹 LOG 檢查資料結構
 
-    const datesDiv = document.getElementById('dates');
-    datesDiv.innerHTML = ""; // 清空原有按鈕
+    // 清掉讀取動畫
+    datesDiv.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      datesDiv.innerHTML = `<div style="color:tomato;text-align:center;">目前無可訂日期</div>`;
+      return;
+    }
 
     // 🔹 遍歷每個日期，建立按鈕
     data.forEach(d => {
@@ -225,10 +241,10 @@ async function loadDates() {
 
   } catch (e) {
     console.error("載入日期失敗", e);
-    const datesDiv = document.getElementById('dates');
-    datesDiv.innerHTML = `<div style="color:tomato;">載入日期失敗</div>`;
+    datesDiv.innerHTML = `<div style="color:tomato;text-align:center;">載入日期失敗</div>`;
   }
 }
+
 
 
   // ================== 取得可訂時間 (GAS) ==================
