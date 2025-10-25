@@ -38,7 +38,7 @@
     letter-spacing: 1px;
   }
 
-  /* ================== 日期按鈕小容器，水平滾動 ================== */
+  /* ================== 日期按鈕區，水平滾動 ================== */
   .dates {
     display: flex;
     gap: 6px;
@@ -47,34 +47,32 @@
   }
   /* 日期與時間按鈕共用樣式 */
   .date-btn, .time-btn {
-    display: inline-block;       /* 自動依文字寬度撐開 */
-    padding: 4px 8px;            /* 左右稍微增加空間 */
+    display: inline-block;
+    padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid #555;
     background: #222;
     color: #fff;
     font-size: 14px;
     cursor: pointer;
-    text-align: center;
     transition: all 0.3s;
   }
-  /* 選取狀態 */
   .date-btn.active, .time-btn.active {
     background: #ff8800;
     border-color: #ff8800;
     color: #000;
   }
 
-  /* ================== 時間按鈕小容器，自動換行 ================== */
+  /* ================== 時間按鈕區，自動換行 ================== */
   .times {
-    display: flex;            /* 使用 Flexbox 讓裡面的按鈕橫向排列 */
-    flex-wrap: wrap;          /* 當按鈕太多超出寬度時，自動換行顯示 */
-    gap: 4px;                 /* 每個按鈕之間間距 */
-    justify-content: center;  /* 水平置中 */
-    margin: 12px 0;           /* 上下外距 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin: 12px 0;
   }
   .time-btn {
-    width: 60px;              /* 固定寬度 */
+    width: 60px;
     text-align: center;
     padding: 4px 8px;
     border-radius: 6px;
@@ -83,7 +81,7 @@
     color: #fff;
     font-size: 14px;
     cursor: pointer;
-    white-space: nowrap;      /* 不換行 */
+    white-space: nowrap;
   }
 
   /* ================== 輸入欄位 ================== */
@@ -169,117 +167,104 @@
 <footer><img src="bottom.jpg" alt="Bottom Image"></footer>
 
 <script>
-  // ================== GAS URL ==================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkaT0KYdxDKiA0MnVy_X6H9TDsuND4xPz9JucwJhxkecP7khQWn_LV9HFLM3bvLGWOug/exec"; // 替換成你部署的 GAS URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWQqh9pGbfYtJsD4A_fYhVW1MiMbMQKSDMfApRcbF6saaB_VfGRMASjKJXKgIESpVupA/exec"; // 🚨 請換成你的部署網址
 
   // ================== 多國語系 ==================
   const lang = navigator.language.slice(0,2);
   const i18n = {
     en: { title: "Alley Cat Reservation", date: "Select Date", time: "Select Time", success: "Thank you for your booking!" },
     zh: { title: "Alley Cat 訂位", date: "選擇日期", time: "選擇時間", success: "感謝您的訂位！" },
-    ja: { title: "Alley Cat 予約", date: "日付を選択", time: "時間を選択", success: "ご予約ありがとうございます！" },
-    fr: { title: "Réservation Alley Cat", date: "Sélectionnez une date", time: "Sélectionnez l'heure", success: "Merci pour votre réservation !" },
-    ko: { title: "Alley Cat 예약", date: "날짜 선택", time: "시간 선택", success: "예약해 주셔서 감사합니다!" },
-    de: { title: "Alley Cat Reservierung", date: "Datum auswählen", time: "Zeit auswählen", success: "Danke für Ihre Reservierung!" },
-    es: { title: "Reserva Alley Cat", date: "Seleccionar fecha", time: "Seleccionar hora", success: "¡Gracias por su reserva!" },
-    th: { title: "การจอง Alley Cat", date: "เลือกวันที่", time: "เลือกเวลา", success: "ขอบคุณสำหรับการจอง!" }
   };
   const L = i18n[lang] || i18n.en;
   document.getElementById('title').textContent = L.title;
   document.getElementById('dateLabel').textContent = L.date;
   document.getElementById('timeLabel').textContent = L.time;
 
-  // ================== 選擇狀態變數 ==================
-  let selectedDate = null, selectedTime = null;
+  let allTimes = [];     // 💾 暫存全部 AvailableTimes 資料
+  let selectedDate = ""; // 使用者選的日期
+  let selectedTime = ""; // 使用者選的時間
 
-  // ================== 取得營業日期 (GAS) ==================
-  async function loadDates() {
-    const datesDiv = document.getElementById('dates');
+  // ================== 1️⃣ 載入全部日期時間資料 ==================
+  async function loadAvailableTimes() {
     const loading = document.getElementById('datesLoading');
-    loading.style.display = "inline"; // 顯示讀取動畫
+    loading.style.display = "inline";
+    const datesDiv = document.getElementById('dates');
     datesDiv.innerHTML = "";
 
     try {
-      const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
+      const res = await fetch(`${SCRIPT_URL}?action=getAvailableTimes`);
       const data = await res.json();
+      allTimes = Array.isArray(data) ? data : [];
 
-      // 如果 GAS 直接回傳陣列，或包裹在 data.dates 裡
-      const datesArray = Array.isArray(data) ? data : data.dates || [];
-
-      if (!datesArray.length) {
+      if (!allTimes.length) {
         datesDiv.innerHTML = "<span style='color:tomato'>無可訂日期</span>";
         return;
       }
 
-      // 1️⃣ 去重：使用 date 作 key
-      const uniqueDates = {};
-      datesArray.forEach(d => { if (!uniqueDates[d.date]) uniqueDates[d.date] = d; });
+      // 提取唯一日期
+      const uniqueDates = [...new Set(allTimes.map(item => item.Date))];
 
-      // 2️⃣ 轉回陣列並排序
-      const sortedDates = Object.values(uniqueDates).sort((a,b)=>new Date(a.date)-new Date(b.date));
+      // 依日期排序
+      uniqueDates.sort((a,b)=>new Date(a)-new Date(b));
 
-      // 3️⃣ 建立日期按鈕
-      sortedDates.forEach(d => {
-        const btn = document.createElement('button');
-        btn.className = 'date-btn';
-        btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
+      // 建立日期按鈕
+      uniqueDates.forEach(dateStr => {
+        const btn = document.createElement("button");
+        btn.className = "date-btn";
+        const dayLabel = allTimes.find(t => t.Date === dateStr)?.Day || "";
+        btn.innerHTML = `<div>${dateStr}</div><div>${dayLabel}</div>`;
         btn.onclick = () => {
           document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
-          selectedDate = d.date;
-          loadTimes(selectedDate); // 載入時間
+          selectedDate = dateStr;
+          loadTimesForDate(dateStr);
         };
         datesDiv.appendChild(btn);
       });
 
-    } catch(e) {
-      datesDiv.innerHTML = "<span style='color:tomato'>載入失敗，請稍後再試</span>";
+    } catch (err) {
+      datesDiv.innerHTML = "<span style='color:tomato'>載入失敗</span>";
     } finally {
-      loading.style.display = "none"; // 隱藏讀取動畫
+      loading.style.display = "none";
     }
   }
 
-  // ================== 取得可訂時間 (GAS) ==================
-  async function loadTimes(date) {
+  // ================== 2️⃣ 根據日期篩選時間 ==================
+  function loadTimesForDate(date) {
     const timesDiv = document.getElementById('times');
     const loading = document.getElementById('timesLoading');
-    loading.style.display = "inline"; // 顯示讀取動畫
-    timesDiv.innerHTML = ""; // 清空舊時間按鈕
+    loading.style.display = "inline";
+    timesDiv.innerHTML = "";
 
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
-      const data = await res.json();
+    const dayTimes = allTimes.filter(t => t.Date === date);
 
-      const timesArray = Array.isArray(data.times) ? data.times : [];
-
-      if (!timesArray.length) {
-        timesDiv.innerHTML = "<span style='color:tomato'>無可訂時間</span>";
-        return;
-      }
-
-      // 遍歷每個時間段，建立按鈕
-      timesArray.forEach(t => {
-        const btn = document.createElement('button');
-        btn.className = 'time-btn';
-        btn.textContent = t.time; // 顯示 HH:MM
-        btn.onclick = () => {
-          document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedTime = t.time;
-        };
-        timesDiv.appendChild(btn);
-      });
-
-    } catch(e) {
-      timesDiv.innerHTML = "<span style='color:tomato'>載入時間失敗</span>";
-    } finally {
-      loading.style.display = "none"; // 隱藏讀取動畫
+    if (!dayTimes.length) {
+      timesDiv.innerHTML = "<span style='color:tomato'>無可訂時間</span>";
+      loading.style.display = "none";
+      return;
     }
+
+    // 依 Slot + Open 排序
+    dayTimes.sort((a,b)=> (a.Slot+a.Open).localeCompare(b.Slot+b.Open));
+
+    // 建立每個時間段
+    dayTimes.forEach(t => {
+      const btn = document.createElement("button");
+      btn.className = "time-btn";
+      btn.textContent = `${t.Slot} ${t.Open}~${t.Close}`;
+      btn.onclick = () => {
+        document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTime = `${t.Slot} ${t.Open}`;
+      };
+      timesDiv.appendChild(btn);
+    });
+
+    loading.style.display = "none";
   }
 
-  // ================== 表單送出 ==================
+  // ================== 3️⃣ 送出預約 ==================
   document.getElementById('submitBtn').onclick = async () => {
-    const btn = document.getElementById('submitBtn');
     const msg = document.getElementById('message');
     msg.textContent = "";
 
@@ -289,20 +274,20 @@
     const people = document.getElementById('people').value.trim();
     const note = document.getElementById('note').value.trim();
 
-    // 檢查必填欄位
     if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
       msg.textContent = "請填寫所有必填欄位！";
       msg.style.color = "tomato";
       return;
     }
 
-    btn.classList.add("loading"); // 顯示送出中動畫
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add("loading");
 
-    const payload = { 
-      action: "submitReservation", 
-      date: selectedDate, 
-      time: selectedTime, 
-      name, phone, email, people, note 
+    const payload = {
+      action: "submitReservation",
+      date: selectedDate,
+      time: selectedTime,
+      name, phone, email, people, note
     };
 
     try {
@@ -313,15 +298,15 @@
       const result = await res.json();
       msg.textContent = result.success ? L.success : "送出失敗，請稍後再試。";
       msg.style.color = result.success ? "lightgreen" : "tomato";
-    } catch(e) {
+    } catch (e) {
       msg.textContent = "送出失敗，請稍後再試。";
     } finally {
-      btn.classList.remove("loading"); // 移除送出中動畫
+      btn.classList.remove("loading");
     }
   };
 
-  // ================== 初始化頁面，載入日期 ==================
-  loadDates();
+  // ================== 初始化 ==================
+  loadAvailableTimes();
 </script>
 </body>
 </html>
