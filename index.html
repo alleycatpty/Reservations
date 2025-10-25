@@ -187,36 +187,49 @@
   // ================== 選擇狀態變數 ==================
   let selectedDate = null, selectedTime = null;
 
-  // ================== 取得營業日期 (GAS) ==================
-  async function loadDates() {
-    try {
-      // 透過 GAS 取得日期設定
-      const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
-      const data = await res.json();
-      const datesDiv = document.getElementById('dates');
-      datesDiv.innerHTML = "";
+ // ================== 取得營業日期 (GAS) ==================
+async function loadDates() {
+  try {
+    // 🔹 從 GAS 取得日期資料
+    const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
+    const data = await res.json();
 
-      // 遍歷每個日期，建立按鈕
-      data.dates.forEach(d => {
-        const btn = document.createElement('button');
-        btn.className = 'date-btn';
-        // 顯示日期及星期
-        btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
-        btn.onclick = () => {
-          // 取消其他按鈕選取
-          document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          // 記錄選取日期
-          selectedDate = d.date;
-          // 載入該日期可訂時間
-          loadTimes(d.date);
-        };
-        datesDiv.appendChild(btn);
-      });
-    } catch(e) {
-      console.error("載入日期失敗", e);
-    }
+    console.log("GAS 回傳日期資料:", data); // 🔹 LOG 檢查資料結構
+
+    const datesDiv = document.getElementById('dates');
+    datesDiv.innerHTML = ""; // 清空原有按鈕
+
+    // 🔹 遍歷每個日期，建立按鈕
+    data.forEach(d => {
+      const btn = document.createElement('button');
+      btn.className = 'date-btn';
+
+      // 顯示日期及星期，例如 25/10 Sat
+      btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
+
+      // 按鈕點擊事件
+      btn.onclick = () => {
+        // 取消其他按鈕選取
+        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // 記錄選取日期（ISO 格式）
+        selectedDate = d.date;
+
+        // 🔹 載入該日期可訂時間
+        loadTimes(d.date);
+      };
+
+      datesDiv.appendChild(btn);
+    });
+
+  } catch (e) {
+    console.error("載入日期失敗", e);
+    const datesDiv = document.getElementById('dates');
+    datesDiv.innerHTML = `<div style="color:tomato;">載入日期失敗</div>`;
   }
+}
+
 
   // ================== 取得可訂時間 (GAS) ==================
   async function loadTimes(date) {
