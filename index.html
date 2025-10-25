@@ -169,142 +169,257 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWQqh9pGbfYtJsD4A_fYhVW1MiMbMQKSDMfApRcbF6saaB_VfGRMASjKJXKgIESpVupA/exec"; // 🚨 請換成你的部署網址
 
-  // ================== 多國語系 ==================
-  const lang = navigator.language.slice(0,2);
-  const i18n = {
-    en: { title: "Alley Cat Reservation", date: "Select Date", time: "Select Time", success: "Thank you for your booking!" },
-    zh: { title: "Alley Cat 訂位", date: "選擇日期", time: "選擇時間", success: "感謝您的訂位！" },
-  };
-  const L = i18n[lang] || i18n.en;
-  document.getElementById('title').textContent = L.title;
-  document.getElementById('dateLabel').textContent = L.date;
-  document.getElementById('timeLabel').textContent = L.time;
+// ================== 多國語系 ==================
+const lang = navigator.language.slice(0,2); // 瀏覽器語系
+const i18n = {
+  en: {
+    title: "Alley Cat Reservation",
+    date: "Select Date",
+    time: "Select Time",
+    noDates: "No available dates",
+    noTimes: "No available times",
+    required: "Please fill in all required fields!",
+    success: "Thank you for your booking!",
+    submitFail: "Submission failed. Please try again."
+  },
+  zh: {
+    title: "Alley Cat 訂位",
+    date: "選擇日期",
+    time: "選擇時間",
+    noDates: "無可預訂日期",
+    noTimes: "無可預訂時間",
+    required: "請填寫所有必填欄位！",
+    success: "感謝您的訂位！",
+    submitFail: "送出失敗，請稍後再試。"
+  },
+  ja: {
+    title: "Alley Cat 予約",
+    date: "日付を選択",
+    time: "時間を選択",
+    noDates: "予約可能な日付がありません",
+    noTimes: "予約可能な時間がありません",
+    required: "必須項目をすべて入力してください！",
+    success: "ご予約ありがとうございます！",
+    submitFail: "送信に失敗しました。後で再試行してください。"
+  },
+  fr: {
+    title: "Réservation Alley Cat",
+    date: "Sélectionnez une date",
+    time: "Sélectionnez l'heure",
+    noDates: "Aucune date disponible",
+    noTimes: "Aucun créneau horaire disponible",
+    required: "Veuillez remplir tous les champs obligatoires !",
+    success: "Merci pour votre réservation !",
+    submitFail: "Échec de l'envoi. Veuillez réessayer."
+  },
+  ko: {
+    title: "Alley Cat 예약",
+    date: "날짜 선택",
+    time: "시간 선택",
+    noDates: "예약 가능한 날짜가 없습니다",
+    noTimes: "예약 가능한 시간이 없습니다",
+    required: "모든 필수 항목을 입력해주세요!",
+    success: "예약해 주셔서 감사합니다!",
+    submitFail: "전송 실패. 나중에 다시 시도해주세요."
+  },
+  de: {
+    title: "Alley Cat Reservierung",
+    date: "Datum auswählen",
+    time: "Zeit auswählen",
+    noDates: "Keine verfügbaren Daten",
+    noTimes: "Keine verfügbaren Zeiten",
+    required: "Bitte alle Pflichtfelder ausfüllen!",
+    success: "Vielen Dank für Ihre Reservierung!",
+    submitFail: "Senden fehlgeschlagen. Bitte versuchen Sie es erneut."
+  },
+  es: {
+    title: "Reserva Alley Cat",
+    date: "Seleccionar fecha",
+    time: "Seleccionar hora",
+    noDates: "No hay fechas disponibles",
+    noTimes: "No hay horarios disponibles",
+    required: "¡Por favor complete todos los campos obligatorios!",
+    success: "¡Gracias por su reserva!",
+    submitFail: "Error al enviar. Por favor, inténtelo de nuevo."
+  },
+  th: {
+    title: "การจอง Alley Cat",
+    date: "เลือกวันที่",
+    time: "เลือกเวลา",
+    noDates: "ไม่มีวันที่สามารถจองได้",
+    noTimes: "ไม่มีเวลาที่สามารถจองได้",
+    required: "กรุณากรอกข้อมูลที่จำเป็นทั้งหมด!",
+    success: "ขอบคุณสำหรับการจอง!",
+    submitFail: "ส่งข้อมูลล้มเหลว โปรดลองอีกครั้ง"
+  }
+};
+const L = i18n[lang] || i18n.en;
+
+// ================== 更新頁面文字 ==================
+document.getElementById('title').textContent = L.title;
+document.getElementById('dateLabel').textContent = L.date;
+document.getElementById('timeLabel').textContent = L.time;
+
 
   let allTimes = [];     // 💾 暫存全部 AvailableTimes 資料
   let selectedDate = ""; // 使用者選的日期
   let selectedTime = ""; // 使用者選的時間
 
-  // ================== 1️⃣ 載入全部日期時間資料 ==================
-  async function loadAvailableTimes() {
-    const loading = document.getElementById('datesLoading');
-    loading.style.display = "inline";
-    const datesDiv = document.getElementById('dates');
-    datesDiv.innerHTML = "";
+// ================== 1️⃣ 載入全部日期時間資料 ==================
+async function loadAvailableTimes() {
+  const loading = document.getElementById('datesLoading');
+  loading.style.display = "inline";
+  const datesDiv = document.getElementById('dates');
+  datesDiv.innerHTML = "";
 
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=getAvailableTimes`);
-      const data = await res.json();
-      allTimes = Array.isArray(data) ? data : [];
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getAvailableTimes`);
+    const data = await res.json();
+    console.log("📅 allTimes data:", data); // Debug
+    allTimes = Array.isArray(data) ? data : [];
 
-      if (!allTimes.length) {
-        datesDiv.innerHTML = "<span style='color:tomato'>無可訂日期</span>";
-        return;
-      }
-
-      // 提取唯一日期
-      const uniqueDates = [...new Set(allTimes.map(item => item.Date))];
-
-      // 依日期排序
-      uniqueDates.sort((a,b)=>new Date(a)-new Date(b));
-
-      // 建立日期按鈕
-      uniqueDates.forEach(dateStr => {
-        const btn = document.createElement("button");
-        btn.className = "date-btn";
-        const dayLabel = allTimes.find(t => t.Date === dateStr)?.Day || "";
-        btn.innerHTML = `<div>${dateStr}</div><div>${dayLabel}</div>`;
-        btn.onclick = () => {
-          document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedDate = dateStr;
-          loadTimesForDate(dateStr);
-        };
-        datesDiv.appendChild(btn);
-      });
-
-    } catch (err) {
-      datesDiv.innerHTML = "<span style='color:tomato'>載入失敗</span>";
-    } finally {
-      loading.style.display = "none";
-    }
-  }
-
-  // ================== 2️⃣ 根據日期篩選時間 ==================
-  function loadTimesForDate(date) {
-    const timesDiv = document.getElementById('times');
-    const loading = document.getElementById('timesLoading');
-    loading.style.display = "inline";
-    timesDiv.innerHTML = "";
-
-    const dayTimes = allTimes.filter(t => t.Date === date);
-
-    if (!dayTimes.length) {
-      timesDiv.innerHTML = "<span style='color:tomato'>無可訂時間</span>";
-      loading.style.display = "none";
+    if (!allTimes.length) {
+      datesDiv.innerHTML = `<span style="color:tomato">${L.noDates || "無可預訂時間"}</span>`;
       return;
     }
 
-    // 依 Slot + Open 排序
-    dayTimes.sort((a,b)=> (a.Slot+a.Open).localeCompare(b.Slot+b.Open));
+    // 提取唯一日期
+    const uniqueDates = [...new Set(allTimes.map(item => item.date))];
 
-    // 建立每個時間段
-    dayTimes.forEach(t => {
+    // 依日期排序
+    uniqueDates.sort((a, b) => new Date(a) - new Date(b));
+
+    // 建立日期按鈕
+    uniqueDates.forEach(dateStr => {
       const btn = document.createElement("button");
-      btn.className = "time-btn";
-      btn.textContent = `${t.Slot} ${t.Open}~${t.Close}`;
+      btn.className = "date-btn";
+
+      // 轉成 25 Oct 格式
+      const dateObj = new Date(dateStr);
+      const displayDate = dateObj.toLocaleDateString(lang, { day: "2-digit", month: "short" });
+
+      const dayLabel = allTimes.find(t => t.date === dateStr)?.day || "";
+      btn.innerHTML = `<div>${displayDate}</div><div>${dayLabel}</div>`;
+
       btn.onclick = () => {
-        document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        selectedTime = `${t.Slot} ${t.Open}`;
+        selectedDate = dateStr;
+        loadTimesForDate(dateStr);
       };
-      timesDiv.appendChild(btn);
+      datesDiv.appendChild(btn);
     });
 
+  } catch (err) {
+    console.error("❌ 載入可用時間發生錯誤:", err);
+    datesDiv.innerHTML = `<span style="color:tomato">${L.noDates || "無可預訂時間"}</span>`;
+  } finally {
     loading.style.display = "none";
   }
+}
 
-  // ================== 3️⃣ 送出預約 ==================
-  document.getElementById('submitBtn').onclick = async () => {
-    const msg = document.getElementById('message');
-    msg.textContent = "";
 
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const people = document.getElementById('people').value.trim();
-    const note = document.getElementById('note').value.trim();
 
-    if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
-      msg.textContent = "請填寫所有必填欄位！";
-      msg.style.color = "tomato";
-      return;
+// ================== 2️⃣ 根據日期篩選時間，拆解每個可選時間 ==================
+function loadTimesForDate(date) {
+  const timesDiv = document.getElementById('times');
+  const loading = document.getElementById('timesLoading');
+  loading.style.display = "inline";
+  timesDiv.innerHTML = "";
+
+  // 篩選該日期的時間段
+  const dayTimes = allTimes.filter(t => t.date === date);
+
+  if (!dayTimes.length) {
+    timesDiv.innerHTML = `<span style="color:tomato">${L.noTimes || "無可預訂時間"}</span>`;
+    loading.style.display = "none";
+    return;
+  }
+
+  // 依 Open 排序
+  dayTimes.sort((a,b) => a.open.localeCompare(b.open));
+
+  // 拆解每個時間段
+  dayTimes.forEach(t => {
+    const interval = t.interval || 20; // 沒有 interval 則預設 20 分鐘
+    const openParts = t.open.split(":").map(Number);
+    const closeParts = t.close.split(":").map(Number);
+    let current = new Date(0,0,0, openParts[0], openParts[1]);
+    const end = new Date(0,0,0, closeParts[0], closeParts[1]);
+
+    while (current < end) {
+      const hh = String(current.getHours()).padStart(2,"0");
+      const mm = String(current.getMinutes()).padStart(2,"0");
+      const timeStr = `${hh}:${mm}`;
+
+      const btn = document.createElement("button");
+      btn.className = "time-btn";
+      btn.textContent = timeStr;  // 只顯示時間
+      btn.onclick = () => {
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTime = timeStr;   // 送出時只用時間
+      };
+      timesDiv.appendChild(btn);
+
+      // 加上 interval
+      current.setMinutes(current.getMinutes() + interval);
     }
+  });
 
-    const btn = document.getElementById('submitBtn');
-    btn.classList.add("loading");
+  loading.style.display = "none";
+}
 
-    const payload = {
-      action: "submitReservation",
-      date: selectedDate,
-      time: selectedTime,
-      name, phone, email, people, note
-    };
 
-    try {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-      msg.textContent = result.success ? L.success : "送出失敗，請稍後再試。";
-      msg.style.color = result.success ? "lightgreen" : "tomato";
-    } catch (e) {
-      msg.textContent = "送出失敗，請稍後再試。";
-    } finally {
-      btn.classList.remove("loading");
-    }
+
+
+ // ================== 3️⃣ 送出預約 ==================
+document.getElementById('submitBtn').onclick = async () => {
+  const msg = document.getElementById('message');
+  msg.textContent = "";
+
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const people = document.getElementById('people').value.trim();
+  const note = document.getElementById('note').value.trim();
+
+  // ================== 檢查必填欄位 ==================
+  if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
+    msg.textContent = L.required;       // 多國語系訊息
+    msg.style.color = "tomato";
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add("loading");
+
+  const payload = {
+    action: "submitReservation",
+    date: selectedDate,
+    time: selectedTime,
+    name, phone, email, people, note
   };
 
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+
+    // ================== 顯示送出結果 ==================
+    msg.textContent = result.success ? L.success : L.submitFail;
+    msg.style.color = result.success ? "lightgreen" : "tomato";
+
+  } catch (e) {
+    // ================== 送出失敗 ==================
+    msg.textContent = L.submitFail;
+    msg.style.color = "tomato";
+  } finally {
+    btn.classList.remove("loading");
+  }
+};
   // ================== 初始化 ==================
   loadAvailableTimes();
 </script>
