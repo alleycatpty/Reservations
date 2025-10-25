@@ -131,6 +131,7 @@
   @keyframes spin { 100% { transform: translate(50%, -50%) rotate(360deg); } }
 
   .message { margin-top: 16px; color: #90ee90; font-size: 14px; }
+  #datesLoading, #timesLoading { color: #ff8800; margin-left: 8px; }
 </style>
 </head>
 <body>
@@ -139,18 +140,20 @@
   <img src="logo.png" alt="Alley Cat Logo" style="max-width:120px;">
   <h1 id="title">Alley Cat 訂位</h1>
 
-<!-- 日期區 -->
-<div id="date-section">
-  <p id="dateLabel"></p>
-  <div class="dates" id="dates">
-    <span id="datesLoading" style="display:none;">載入中...</span>
+  <!-- 日期區 -->
+  <div id="date-section">
+    <p id="dateLabel"></p>
+    <div class="dates" id="dates">
+      <span id="datesLoading" style="display:none;">載入中...</span>
+    </div>
   </div>
-</div>
 
   <!-- 時間區 -->
   <div id="time-section">
     <p id="timeLabel"></p>
-    <div class="times" id="times"></div>
+    <div class="times" id="times">
+      <span id="timesLoading" style="display:none;">載入中...</span>
+    </div>
   </div>
 
   <!-- 預約資訊欄位 -->
@@ -167,7 +170,7 @@
 
 <script>
   // ================== GAS URL ==================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkaT0KYdxDKiA0MnVy_X6H9TDsuND4xPz9JucwJhxkecP7khQWn_LV9HFLM3bvLGWOug/exec"; // 需替換成你部署的 GAS URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkaT0KYdxDKiA0MnVy_X6H9TDsuND4xPz9JucwJhxkecP7khQWn_LV9HFLM3bvLGWOug/exec"; // 替換成你部署的 GAS URL
 
   // ================== 多國語系 ==================
   const lang = navigator.language.slice(0,2);
@@ -189,109 +192,88 @@
   // ================== 選擇狀態變數 ==================
   let selectedDate = null, selectedTime = null;
 
-// ================== 取得營業日期 (GAS) ==================
-async function loadDates() {
-  const datesDiv = document.getElementById('dates');
-  const loading = document.getElementById('datesLoading');
-  
-  // 顯示載入動畫
-  loading.style.display = "inline";
-  datesDiv.innerHTML = "";
+  // ================== 取得營業日期 (GAS) ==================
+  async function loadDates() {
+    const datesDiv = document.getElementById('dates');
+    const loading = document.getElementById('datesLoading');
+    loading.style.display = "inline"; // 顯示讀取動畫
+    datesDiv.innerHTML = "";
 
-  try {
-    // 透過 GAS 取得日期設定
-    const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
+      const data = await res.json();
 
-    // 如果 GAS 直接回傳陣列，或包裹在 data.dates 裡
-    const datesArray = Array.isArray(data) ? data : data.dates || [];
+      // 如果 GAS 直接回傳陣列，或包裹在 data.dates 裡
+      const datesArray = Array.isArray(data) ? data : data.dates || [];
 
-    if (datesArray.length === 0) {
-      datesDiv.innerHTML = "<span style='color:tomato'>無可訂日期</span>";
-      return;
+      if (!datesArray.length) {
+        datesDiv.innerHTML = "<span style='color:tomato'>無可訂日期</span>";
+        return;
+      }
+
+      // 1️⃣ 去重：使用 date 作 key
+      const uniqueDates = {};
+      datesArray.forEach(d => { if (!uniqueDates[d.date]) uniqueDates[d.date] = d; });
+
+      // 2️⃣ 轉回陣列並排序
+      const sortedDates = Object.values(uniqueDates).sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+      // 3️⃣ 建立日期按鈕
+      sortedDates.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'date-btn';
+        btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
+        btn.onclick = () => {
+          document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedDate = d.date;
+          loadTimes(selectedDate); // 載入時間
+        };
+        datesDiv.appendChild(btn);
+      });
+
+    } catch(e) {
+      datesDiv.innerHTML = "<span style='color:tomato'>載入失敗，請稍後再試</span>";
+    } finally {
+      loading.style.display = "none"; // 隱藏讀取動畫
     }
-
-    // 1️⃣ 去重：使用 date 作 key
-    const uniqueDates = {};
-    datesArray.forEach(d => {
-      if (!uniqueDates[d.date]) uniqueDates[d.date] = d;
-    });
-
-    // 2️⃣ 轉回陣列並排序
-    const sortedDates = Object.values(uniqueDates).sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // 3️⃣ 建立日期按鈕
-    sortedDates.forEach(d => {
-      const btn = document.createElement('button');
-      btn.className = 'date-btn';
-      btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
-      btn.onclick = () => {
-        // 取消其他按鈕選取
-        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        // 記錄選取日期
-        selectedDate = d.date;
-        // 載入該日期可訂時間
-        loadTimes(selectedDate);
-      };
-      datesDiv.appendChild(btn);
-    });
-
-  } catch (e) {
-    datesDiv.innerHTML = "<span style='color:tomato'>載入失敗，請稍後再試</span>";
-  } finally {
-    // 隱藏讀取動畫
-    loading.style.display = "none";
   }
-}
-
-// ================== 範例 loadTimes 函式 ==================
-function loadTimes(date) {
-  // TODO: 這裡呼叫 GAS 取得該日期可用時間段，並顯示按鈕
-}
-
-// 初始化
-loadDates();
-</script>
-
-// ================== 範例 loadTimes 函式 ==================
-// 這邊假設你已有 loadTimes(date) 函式，可自行整合
-function loadTimes(date) {
-  console.log("載入時間段 for", date);
-  // TODO: 這裡呼叫 GAS 取得該日期可用時間段
-}
-
-// 初始化
-loadDates();
-</script>
-
-
 
   // ================== 取得可訂時間 (GAS) ==================
   async function loadTimes(date) {
+    const timesDiv = document.getElementById('times');
+    const loading = document.getElementById('timesLoading');
+    loading.style.display = "inline"; // 顯示讀取動畫
+    timesDiv.innerHTML = ""; // 清空舊時間按鈕
+
     try {
-      // 透過 GAS 取得時間
       const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
       const data = await res.json();
-      const timesDiv = document.getElementById('times');
-      timesDiv.innerHTML = "";
 
-      // 遍歷每個時間，建立按鈕
-      data.times.forEach(t => {
+      const timesArray = Array.isArray(data.times) ? data.times : [];
+
+      if (!timesArray.length) {
+        timesDiv.innerHTML = "<span style='color:tomato'>無可訂時間</span>";
+        return;
+      }
+
+      // 遍歷每個時間段，建立按鈕
+      timesArray.forEach(t => {
         const btn = document.createElement('button');
         btn.className = 'time-btn';
         btn.textContent = t.time; // 顯示 HH:MM
         btn.onclick = () => {
-          // 取消其他按鈕選取
           document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
-          // 記錄選取時間
           selectedTime = t.time;
         };
         timesDiv.appendChild(btn);
       });
+
     } catch(e) {
-      console.error("載入時間失敗", e);
+      timesDiv.innerHTML = "<span style='color:tomato'>載入時間失敗</span>";
+    } finally {
+      loading.style.display = "none"; // 隱藏讀取動畫
     }
   }
 
@@ -333,14 +315,12 @@ loadDates();
       msg.style.color = result.success ? "lightgreen" : "tomato";
     } catch(e) {
       msg.textContent = "送出失敗，請稍後再試。";
-      msg.style.color = "tomato";
-      console.error(e);
     } finally {
       btn.classList.remove("loading"); // 移除送出中動畫
     }
   };
 
-  // 初始化頁面，載入日期
+  // ================== 初始化頁面，載入日期 ==================
   loadDates();
 </script>
 </body>
