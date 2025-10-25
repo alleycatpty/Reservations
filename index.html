@@ -45,20 +45,21 @@
     overflow-x: auto;
     padding-bottom: 6px;
   }
-  .date-btn {
-    flex: 0 0 auto;  /* 固定寬度，不被伸縮 */
+  /* 日期與時間按鈕共用樣式 */
+  .date-btn, .time-btn {
+    display: inline-block;       /* 自動依文字寬度撐開 */
+    padding: 4px 8px;            /* 左右稍微增加空間 */
+    border-radius: 6px;
+    border: 1px solid #555;
     background: #222;
     color: #fff;
-    border: 1px solid #555;
-    border-radius: 6px;
-    padding: 6px 10px;
-    min-width: 60px;
-    text-align: center;
     font-size: 14px;
     cursor: pointer;
+    text-align: center;
     transition: all 0.3s;
   }
-  .date-btn.active {
+  /* 選取狀態 */
+  .date-btn.active, .time-btn.active {
     background: #ff8800;
     border-color: #ff8800;
     color: #000;
@@ -66,29 +67,23 @@
 
   /* ================== 時間按鈕小容器，自動換行 ================== */
   .times {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
-    margin: 12px 0;
+    display: flex;            /* 使用 Flexbox 讓裡面的按鈕橫向排列 */
+    flex-wrap: wrap;          /* 當按鈕太多超出寬度時，自動換行顯示 */
+    gap: 4px;                 /* 每個按鈕之間間距 */
+    justify-content: center;  /* 水平置中 */
+    margin: 12px 0;           /* 上下外距 */
   }
   .time-btn {
-    flex: 0 0 auto;
-    padding: 6px 10px;
+    width: 60px;              /* 固定寬度 */
+    text-align: center;
+    padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid #555;
     background: #222;
     color: #fff;
     font-size: 14px;
     cursor: pointer;
-    text-align: center;
-    transition: all 0.3s;
-    min-width: 50px;
-  }
-  .time-btn.active {
-    background: #ff8800;
-    border-color: #ff8800;
-    color: #000;
+    white-space: nowrap;      /* 不換行 */
   }
 
   /* ================== 輸入欄位 ================== */
@@ -170,7 +165,7 @@
 
 <script>
   // ================== GAS URL ==================
-  const SCRIPT_URL = "YOUR_GAS_DEPLOY_URL_HERE";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2llFRbDbH5dx2Jxc-EMBxxmGuqe8FiX2ocmQvXdhHcV4AJh2FlLg9s1UaZykwfLW0NQ/exec"; // 需替換成你部署的 GAS URL
 
   // ================== 多國語系 ==================
   const lang = navigator.language.slice(0,2);
@@ -189,26 +184,31 @@
   document.getElementById('dateLabel').textContent = L.date;
   document.getElementById('timeLabel').textContent = L.time;
 
+  // ================== 選擇狀態變數 ==================
   let selectedDate = null, selectedTime = null;
 
-  // ================== 取得營業日期 ==================
+  // ================== 取得營業日期 (GAS) ==================
   async function loadDates() {
     try {
+      // 透過 GAS 取得日期設定
       const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
       const data = await res.json();
       const datesDiv = document.getElementById('dates');
       datesDiv.innerHTML = "";
 
-      // 每個日期按鈕
+      // 遍歷每個日期，建立按鈕
       data.dates.forEach(d => {
         const btn = document.createElement('button');
         btn.className = 'date-btn';
-        // 顯示 DD/MM + 星期縮寫
+        // 顯示日期及星期
         btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
         btn.onclick = () => {
+          // 取消其他按鈕選取
           document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
+          // 記錄選取日期
           selectedDate = d.date;
+          // 載入該日期可訂時間
           loadTimes(d.date);
         };
         datesDiv.appendChild(btn);
@@ -218,21 +218,25 @@
     }
   }
 
-  // ================== 取得可訂時間 ==================
+  // ================== 取得可訂時間 (GAS) ==================
   async function loadTimes(date) {
     try {
+      // 透過 GAS 取得時間
       const res = await fetch(`${SCRIPT_URL}?action=getTimes&date=${date}`);
       const data = await res.json();
       const timesDiv = document.getElementById('times');
       timesDiv.innerHTML = "";
 
+      // 遍歷每個時間，建立按鈕
       data.times.forEach(t => {
         const btn = document.createElement('button');
         btn.className = 'time-btn';
-        btn.textContent = t.time; // 僅顯示 HH:MM
+        btn.textContent = t.time; // 顯示 HH:MM
         btn.onclick = () => {
+          // 取消其他按鈕選取
           document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
+          // 記錄選取時間
           selectedTime = t.time;
         };
         timesDiv.appendChild(btn);
@@ -254,13 +258,15 @@
     const people = document.getElementById('people').value.trim();
     const note = document.getElementById('note').value.trim();
 
+    // 檢查必填欄位
     if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
       msg.textContent = "請填寫所有必填欄位！";
       msg.style.color = "tomato";
       return;
     }
 
-    btn.classList.add("loading");
+    btn.classList.add("loading"); // 顯示送出中動畫
+
     const payload = { 
       action: "submitReservation", 
       date: selectedDate, 
@@ -281,10 +287,11 @@
       msg.style.color = "tomato";
       console.error(e);
     } finally {
-      btn.classList.remove("loading");
+      btn.classList.remove("loading"); // 移除送出中動畫
     }
   };
 
+  // 初始化頁面，載入日期
   loadDates();
 </script>
 </body>
