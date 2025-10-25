@@ -301,12 +301,26 @@ async function loadAvailableTimes() {
       const dayLabel = allTimes.find(t => t.date === dateStr)?.day || "";
       btn.innerHTML = `<div>${displayDate}</div><div>${dayLabel}</div>`;
 
-      btn.onclick = () => {
-        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedDate = dateStr;
-        loadTimesForDate(dateStr);
-      };
+btn.onclick = () => {
+  // 移除其他日期的 active
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // 設定選擇日期
+  selectedDate = dateStr;
+
+// 每次選新日期，清空舊的時間按鈕
+  const timesDiv = document.getElementById('times');
+//timesDiv.innerHTML = "";  // 這句話有問題
+
+  // 重置已選時間
+  selectedTime = null;
+ 
+// 生成新的時間按鈕
+  loadTimesForDate(selectedDate);
+};
+
+
       datesDiv.appendChild(btn);
     });
 
@@ -322,10 +336,11 @@ async function loadAvailableTimes() {
 
 // ================== 2️⃣ 根據日期篩選時間，拆解每個可選時間 ==================
 function loadTimesForDate(date) {
-  const timesDiv = document.getElementById('times');
+const timesDiv = document.getElementById('times');
   const loading = document.getElementById('timesLoading');
   loading.style.display = "inline";
-  timesDiv.innerHTML = "";
+ timesDiv.innerHTML = "";
+selectedTime = null; // 每次選新日期都重置
 
   // 篩選該日期的時間段
   const dayTimes = allTimes.filter(t => t.date === date);
