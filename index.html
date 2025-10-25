@@ -139,11 +139,13 @@
   <img src="logo.png" alt="Alley Cat Logo" style="max-width:120px;">
   <h1 id="title">Alley Cat 訂位</h1>
 
-  <!-- 日期區 -->
-  <div id="date-section">
-    <p id="dateLabel"></p>
-    <div class="dates" id="dates"></div>
+<!-- 日期區 -->
+<div id="date-section">
+  <p id="dateLabel"></p>
+  <div class="dates" id="dates">
+    <span id="datesLoading" style="display:none;">載入中...</span>
   </div>
+</div>
 
   <!-- 時間區 -->
   <div id="time-section">
@@ -190,60 +192,61 @@
 // ================== 取得營業日期 (GAS) ==================
 async function loadDates() {
   const datesDiv = document.getElementById('dates');
-  datesDiv.innerHTML = ""; // 清空原有按鈕
-
-  // 🔹 顯示讀取動畫
-  const loading = document.createElement('div');
-  loading.textContent = "載入日期中...";
-  loading.style.color = "#ff8800";
-  loading.style.textAlign = "center";
-  loading.style.width = "100%";
-  datesDiv.appendChild(loading);
+  const loading = document.getElementById('datesLoading');
+  loading.style.display = "inline"; // 顯示讀取動畫
+  datesDiv.innerHTML = ""; // 清空舊按鈕
 
   try {
-    // 🔹 從 GAS 取得日期資料
+    // 透過 GAS 取得日期設定
     const res = await fetch(`${SCRIPT_URL}?action=getSettings`);
     const data = await res.json();
 
-    console.log("GAS 回傳日期資料:", data); // 🔹 LOG 檢查資料結構
+    // 如果 GAS 直接回傳陣列，或包裹在 data.dates 裡
+    const datesArray = Array.isArray(data) ? data : data.dates || [];
 
-    // 清掉讀取動畫
-    datesDiv.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      datesDiv.innerHTML = `<div style="color:tomato;text-align:center;">目前無可訂日期</div>`;
+    if (datesArray.length === 0) {
+      console.warn("GAS 未回傳日期資料或資料為空");
+      datesDiv.innerHTML = "<span style='color:tomato'>無可訂日期</span>";
       return;
     }
 
-    // 🔹 遍歷每個日期，建立按鈕
-    data.forEach(d => {
+    // 遍歷每個日期，建立按鈕
+    datesArray.forEach(d => {
       const btn = document.createElement('button');
       btn.className = 'date-btn';
-
-      // 顯示日期及星期，例如 25/10 Sat
+      // 顯示日期及星期
       btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
-
-      // 按鈕點擊事件
       btn.onclick = () => {
         // 取消其他按鈕選取
         document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
-        // 記錄選取日期（ISO 格式）
+        // 記錄選取日期
         selectedDate = d.date;
-
-        // 🔹 載入該日期可訂時間
-        loadTimes(d.date);
+        console.log("選擇日期:", selectedDate);
+        // 載入該日期可訂時間
+        loadTimes(selectedDate);
       };
-
       datesDiv.appendChild(btn);
     });
 
   } catch (e) {
     console.error("載入日期失敗", e);
-    datesDiv.innerHTML = `<div style="color:tomato;text-align:center;">載入日期失敗</div>`;
+    datesDiv.innerHTML = "<span style='color:tomato'>載入失敗，請稍後再試</span>";
+  } finally {
+    loading.style.display = "none"; // 隱藏讀取動畫
   }
 }
+
+// ================== 範例 loadTimes 函式 ==================
+// 這邊假設你已有 loadTimes(date) 函式，可自行整合
+function loadTimes(date) {
+  console.log("載入時間段 for", date);
+  // TODO: 這裡呼叫 GAS 取得該日期可用時間段
+}
+
+// 初始化
+loadDates();
+</script>
 
 
 
