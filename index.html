@@ -409,12 +409,13 @@ document.getElementById('submitBtn').onclick = async () => {
   const btn = document.getElementById('submitBtn');
   btn.classList.add("loading");
 
-  const payload = {
-    action: "submitReservation",
-    date: selectedDate,
-    time: selectedTime,
-    name, phone, email, people, note
-  };
+const payload = { 
+  action: "submitReservation", 
+  date: selectedDate, 
+  time: selectedTime, 
+  name, phone, email, people, note,
+  lang // 前端取得的語系
+};
 
   try {
     const res = await fetch(SCRIPT_URL, {
