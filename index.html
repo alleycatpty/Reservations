@@ -193,8 +193,10 @@
 async function loadDates() {
   const datesDiv = document.getElementById('dates');
   const loading = document.getElementById('datesLoading');
-  loading.style.display = "inline"; // 顯示讀取動畫
-  datesDiv.innerHTML = ""; // 清空舊按鈕
+  
+  // 顯示載入動畫
+  loading.style.display = "inline";
+  datesDiv.innerHTML = "";
 
   try {
     // 透過 GAS 取得日期設定
@@ -205,16 +207,23 @@ async function loadDates() {
     const datesArray = Array.isArray(data) ? data : data.dates || [];
 
     if (datesArray.length === 0) {
-      console.warn("GAS 未回傳日期資料或資料為空");
       datesDiv.innerHTML = "<span style='color:tomato'>無可訂日期</span>";
       return;
     }
 
-    // 遍歷每個日期，建立按鈕
+    // 1️⃣ 去重：使用 date 作 key
+    const uniqueDates = {};
     datesArray.forEach(d => {
+      if (!uniqueDates[d.date]) uniqueDates[d.date] = d;
+    });
+
+    // 2️⃣ 轉回陣列並排序
+    const sortedDates = Object.values(uniqueDates).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // 3️⃣ 建立日期按鈕
+    sortedDates.forEach(d => {
       const btn = document.createElement('button');
       btn.className = 'date-btn';
-      // 顯示日期及星期
       btn.innerHTML = `<div>${d.display}</div><div>${d.weekday}</div>`;
       btn.onclick = () => {
         // 取消其他按鈕選取
@@ -222,7 +231,6 @@ async function loadDates() {
         btn.classList.add('active');
         // 記錄選取日期
         selectedDate = d.date;
-        console.log("選擇日期:", selectedDate);
         // 載入該日期可訂時間
         loadTimes(selectedDate);
       };
@@ -230,12 +238,21 @@ async function loadDates() {
     });
 
   } catch (e) {
-    console.error("載入日期失敗", e);
     datesDiv.innerHTML = "<span style='color:tomato'>載入失敗，請稍後再試</span>";
   } finally {
-    loading.style.display = "none"; // 隱藏讀取動畫
+    // 隱藏讀取動畫
+    loading.style.display = "none";
   }
 }
+
+// ================== 範例 loadTimes 函式 ==================
+function loadTimes(date) {
+  // TODO: 這裡呼叫 GAS 取得該日期可用時間段，並顯示按鈕
+}
+
+// 初始化
+loadDates();
+</script>
 
 // ================== 範例 loadTimes 函式 ==================
 // 這邊假設你已有 loadTimes(date) 函式，可自行整合
