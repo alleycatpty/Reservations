@@ -163,7 +163,7 @@
 <footer><img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8B.png?raw=true" alt="Bottom Image"></footer>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBPZxN700GEVp-Mb8xOTmr8K1qtd0e8Fn1Hfxetnqb0MEwR5FACtusnifx0GFzh4VwIw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec";
 
 
 
@@ -266,85 +266,43 @@ async function fetchDates(){
 // ======================
 // 送出預約資料給 GAS
 // ======================
-document.getElementById('submitBtn').addEventListener('click', async () => {
-  const msg = document.getElementById('message');
-  msg.textContent = "";
+<form id="reservationForm" method="POST" action="https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec">
+  <input type="hidden" name="action" value="submitReservation">
+  <input type="hidden" name="date" id="dateInput">
+  <input type="hidden" name="time" id="timeInput">
+  <input type="text" name="name" id="name" placeholder="Name" required>
+  <input type="text" name="phone" id="phone" placeholder="Phone" required>
+  <input type="email" name="email" id="email" placeholder="Email" required>
+  <input type="number" name="people" id="people" placeholder="People" required>
+  <textarea name="note" id="note" placeholder="Note"></textarea>
+  <input type="hidden" name="lang" id="langInput">
 
-  // 取得表單欄位
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const people = document.getElementById('people').value.trim();
-  const note = document.getElementById('note').value.trim();
+  <button type="submit" id="submitBtn">Submit</button>
+</form>
 
-  // 檢查欄位是否填寫
-  // 假設 selectedDate, selectedTime, L, lang, SCRIPT_URL 在外部已定義
-  if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
-    msg.textContent = L.required;
-    msg.style.color = "tomato";
-    return;
-  }
+<p id="message"></p>
 
-  const btn = document.getElementById('submitBtn');
-  btn.classList.add("loading");
+<script>
+  // 在表單提交前，把 JS 變數填進隱藏欄位
+  document.getElementById('reservationForm').addEventListener('submit', function(e) {
+    const msg = document.getElementById('message');
+    msg.textContent = "";
 
-  // === 準備傳送資料 (將資料轉換為 URLSearchParams 格式) ===
-  const payload = {
-    action: "submitReservation",
-    date: selectedDate,
-    time: selectedTime,
-    name,
-    phone,
-    email,
-    people,
-    note,
-    lang
-  };
-  
-  // 🎯 關鍵修改 1：將 JS 物件轉換為 URLSearchParams 格式
-  const urlEncodedData = new URLSearchParams(payload);
-
-  try {
-    console.log("📤 Sending to GAS (Form Data):", payload);
-
-    // 🚀 發送請求到你的 GAS Web App
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      
-      // 🎯 關鍵修改 2：移除 headers 設置
-      // 讓瀏覽器自動設定 Content-Type: application/x-www-form-urlencoded
-      // 以符合「簡單請求」的條件，避免 OPTIONS 預檢。
-      
-      body: urlEncodedData, // 🎯 關鍵修改 3：傳送 URLSearchParams 物件
-    });
-
-    console.log("📩 Response status:", res.status, res.statusText);
-
-    // 檢查回應是否成功
-    if (!res.ok) {
-      throw new Error(`HTTP error ${res.status}`);
+    if (!selectedDate || !selectedTime) {
+      msg.textContent = L.required;
+      msg.style.color = "tomato";
+      e.preventDefault(); // 阻止提交
+      return;
     }
 
-    // 解析回傳結果
-    const result = await res.json();
-    console.log("📥 GAS response:", result);
+    document.getElementById('dateInput').value = selectedDate;
+    document.getElementById('timeInput').value = selectedTime;
+    document.getElementById('langInput').value = lang;
 
-    // 顯示成功或失敗訊息
-    msg.textContent = result.success ? L.success : L.submitFail;
-    msg.style.color = result.success ? "lightgreen" : "tomato";
-
-  } catch (e) {
-    console.error("❌ Submission error:", e);
-    msg.textContent = L.submitFail;
-    msg.style.color = "tomato";
-  } finally {
-    btn.classList.remove("loading");
-  }
-});
-
-
-
-document.addEventListener('DOMContentLoaded', fetchDates);
+    msg.textContent = "Submitting...";
+    msg.style.color = "lightblue";
+    // 表單會自動提交，不需要 fetch
+  });
 </script>
 </body>
 </html>
