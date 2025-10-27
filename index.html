@@ -163,7 +163,7 @@
 <footer><img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8B.png?raw=true" alt="Bottom Image"></footer>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGHuoc5Dmnapm8YJUJyhQxodOZVvdc3eD4od_HLOnZwOZxq0TN-BRRuhfTVeZ3V5V00g/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxc_YhKfwbH0Mv0C4NEZaPiSC8WyfMxzC5u2e7jj7hE9vcqTmCj7Gc815gZkSPOj96Hww/exec";
 
 
 
@@ -278,6 +278,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const note = document.getElementById('note').value.trim();
 
   // 檢查欄位是否填寫
+  // 假設 selectedDate, selectedTime, L, lang, SCRIPT_URL 在外部已定義
   if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
     msg.textContent = L.required;
     msg.style.color = "tomato";
@@ -287,7 +288,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const btn = document.getElementById('submitBtn');
   btn.classList.add("loading");
 
-  // === 準備傳送資料 ===
+  // === 準備傳送資料 (將資料轉換為 URLSearchParams 格式) ===
   const payload = {
     action: "submitReservation",
     date: selectedDate,
@@ -299,17 +300,23 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     note,
     lang
   };
+  
+  // 🎯 關鍵修改 1：將 JS 物件轉換為 URLSearchParams 格式
+  const urlEncodedData = new URLSearchParams(payload);
 
   try {
-    console.log("📤 Sending to GAS:", payload);
+    console.log("📤 Sending to GAS (Form Data):", payload);
 
-// ✅ 1️⃣ 加這行 Proxy
-  const proxy = "https://corsproxy.io/?";
-  const res = await fetch(proxy + SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+    // 🚀 發送請求到你的 GAS Web App
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      
+      // 🎯 關鍵修改 2：移除 headers 設置
+      // 讓瀏覽器自動設定 Content-Type: application/x-www-form-urlencoded
+      // 以符合「簡單請求」的條件，避免 OPTIONS 預檢。
+      
+      body: urlEncodedData, // 🎯 關鍵修改 3：傳送 URLSearchParams 物件
+    });
 
     console.log("📩 Response status:", res.status, res.statusText);
 
