@@ -303,14 +303,13 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   try {
     console.log("📤 Sending to GAS:", payload);
 
-    // 🚀 發送請求到你的 GAS Web App（必須是 /exec、任何人可訪問）
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+// ✅ 1️⃣ 加這行 Proxy
+  const proxy = "https://corsproxy.io/?";
+  const res = await fetch(proxy + SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
     console.log("📩 Response status:", res.status, res.statusText);
 
