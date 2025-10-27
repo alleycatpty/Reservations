@@ -36,165 +36,108 @@
     max-width: 120px;
     margin-bottom: 10px;
   }
-
-  /* 日期滑動區 */
-  #dateSlider {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 6px 0;
-  }
+  #dateSlider { display: flex; gap:6px; overflow-x:auto; padding:6px 0; }
   .slider-item {
     flex: 0 0 auto;
-    padding: 6px 12px;
-    border-radius: 6px;
-    background: #222;
-    cursor: pointer;
-    white-space: nowrap;
+    padding:6px 12px;
+    border-radius:6px;
+    background:#222;
+    cursor:pointer;
+    white-space:nowrap;
     transition: all 0.3s;
-    border: 1px solid #555;
-    text-align: center;
-    font-size: 14px;
+    border:1px solid #555;
+    text-align:center;
+    font-size:14px;
   }
-  .slider-item.selected {
-    background: #ff8800;
-    color: #000;
-    border-color: #ff8800;
-  }
-  .slider-item span {
-    display: block;
-  }
-
-  /* 時間按鈕區 */
-  #timeContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-    margin: 12px 0;
-  }
-  .time-btn {
-    width: 60px;
-    text-align: center;
-    padding: 4px 8px;
-    border-radius: 6px;
-    border: 1px solid #555;
-    background: #222;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .time-btn.selected {
-    background: #ff8800;
-    color: #000;
-    border-color: #ff8800;
-  }
-
-  input, textarea {
-    width: 100%;
-    margin: 6px 0;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #333;
-    background: #222;
-    color: #fff;
-  }
-
-  button {
-    margin-top: 12px;
-    padding: 10px;
-    width: 100%;
-    border: none;
-    border-radius: 6px;
-    background-color: #ff8800;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-    transition: opacity 0.3s;
-  }
-  button.loading {
-    pointer-events: none;
-    opacity: 0.7;
-    position: relative;
-  }
+  .slider-item.selected { background:#ff8800; color:#000; border-color:#ff8800; }
+  .slider-item span { display:block; }
+  #timeContainer { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin:12px 0; }
+  .time-btn { width:60px; text-align:center; padding:4px 8px; border-radius:6px; border:1px solid #555; background:#222; color:#fff; font-size:14px; cursor:pointer; white-space:nowrap; }
+  .time-btn.selected { background:#ff8800; color:#000; border-color:#ff8800; }
+  input, textarea { width:100%; margin:6px 0; padding:8px; border-radius:4px; border:1px solid #333; background:#222; color:#fff; }
+  button { margin-top:12px; padding:10px; width:100%; border:none; border-radius:6px; background-color:#ff8800; color:#fff; font-size:16px; cursor:pointer; transition: opacity 0.3s; }
+  button.loading { pointer-events:none; opacity:0.7; position:relative; }
   button.loading::after {
-    content: "";
-    position: absolute;
-    right: 50%;
-    top: 50%;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #fff;
-    border-top: 2px solid transparent;
-    border-radius: 50%;
-    transform: translate(50%, -50%);
+    content:"";
+    position:absolute;
+    right:50%;
+    top:50%;
+    width:20px;
+    height:20px;
+    border:2px solid #fff;
+    border-top:2px solid transparent;
+    border-radius:50%;
+    transform:translate(50%, -50%);
     animation: spin 0.8s linear infinite;
   }
-  @keyframes spin { 100% { transform: translate(50%, -50%) rotate(360deg); } }
-
-  .message { margin-top: 16px; color: #90ee90; font-size: 14px; }
+  @keyframes spin { 100% { transform:translate(50%, -50%) rotate(360deg); } }
+  .message { margin-top:16px; font-size:14px; }
 </style>
 </head>
 <body>
-<header><img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8A.png?raw=true" alt="Top Image"></header>
+
+<header>
+  <img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8A.png?raw=true" alt="Top Image">
+</header>
 
 <div class="container">
   <img id="logo" src="https://github.com/alleycatpty/Reservations/blob/main/alley%20cat%20logo%20white.png?raw=true" alt="Logo">
-  <h1 id="title">Alley Cat 訂位</h1>
+  <h1 id="title"></h1>
 
   <!-- 日期滑動區 -->
   <div id="dateSlider"></div>
-
   <!-- 時間按鈕區 -->
   <div id="timeContainer"></div>
 
-  <!-- 預約資訊 -->
-  <input type="text" id="name" placeholder="">
-  <input type="tel" id="phone" placeholder="">
-  <input type="email" id="email" placeholder="">
-  <input type="number" id="people" placeholder="">
-  <textarea id="note" placeholder=""></textarea>
+  <!-- 表單 -->
+  <form id="reservationForm" method="POST" action="https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec">
+    <input type="hidden" name="action" value="submitReservation">
+    <input type="hidden" name="date" id="dateInput">
+    <input type="hidden" name="time" id="timeInput">
+    <input type="hidden" name="lang" id="langInput">
 
-  <button id="submitBtn"></button>
+    <input type="text" name="name" id="nameInput" placeholder="" required>
+    <input type="tel" name="phone" id="phoneInput" placeholder="" required>
+    <input type="email" name="email" id="emailInput" placeholder="" required>
+    <input type="number" name="people" id="peopleInput" placeholder="" required>
+    <textarea name="note" id="noteInput" placeholder=""></textarea>
+
+    <button type="submit" id="submitBtn"></button>
+  </form>
+
   <div class="message" id="message"></div>
 </div>
 
-<footer><img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8B.png?raw=true" alt="Bottom Image"></footer>
+<footer>
+  <img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8B.png?raw=true" alt="Bottom Image">
+</footer>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec";
-
-
 
 // 多國語系
 const lang = navigator.language.slice(0,2);
 const i18n = {
   zh:{ title:"Alley Cat 訂位", noDates:"無可預訂日期", noTimes:"無可預訂時間", required:"請填寫所有必填欄位！", success:"感謝您的訂位！", submitFail:"送出失敗，請稍後再試。", name:"姓名", phone:"電話", email:"Email", people:"人數", note:"備註 (可不填)", submit:"送出" },
-  en:{ title:"Alley Cat Reservation", noDates:"No available dates", noTimes:"No available times", required:"Please fill in all required fields!", success:"Thank you for your booking!", submitFail:"Submission failed. Please try again.", name:"Name", phone:"Phone", email:"Email", people:"People", note:"Note (optional)", submit:"Submit" },
-  ja:{ title:"Alley Cat 予約", noDates:"予約可能な日付がありません", noTimes:"予約可能な時間がありません", required:"必須項目をすべて入力してください！", success:"ご予約ありがとうございます！", submitFail:"送信に失敗しました。後で再試行してください。", name:"名前", phone:"電話", email:"メール", people:"人数", note:"備考 (任意)", submit:"送信" },
-  fr:{ title:"Réservation Alley Cat", noDates:"Aucune date disponible", noTimes:"Aucun créneau horaire disponible", required:"Veuillez remplir tous les champs obligatoires !", success:"Merci pour votre réservation !", submitFail:"Échec de l'envoi. Veuillez réessayer.", name:"Nom", phone:"Téléphone", email:"Email", people:"Personnes", note:"Note (optionnelle)", submit:"Envoyer" },
-  ko:{ title:"Alley Cat 예약", noDates:"예약 가능한 날짜가 없습니다", noTimes:"예약 가능한 시간이 없습니다", required:"모든 필수 항목을 입력해주세요！", success:"예약해 주셔서 감사합니다！", submitFail:"전송 실패. 나중에 다시 시도해주세요。", name:"이름", phone:"전화", email:"이메일", people:"인원", note:"비고 (선택)", submit:"전송" },
-  de:{ title:"Alley Cat Reservierung", noDates:"Keine verfügbaren Daten", noTimes:"Keine verfügbaren Zeiten", required:"Bitte alle Pflichtfelder ausfüllen!", success:"Vielen Dank für Ihre Reservierung!", submitFail:"Senden fehlgeschlagen. Bitte versuchen Sie es erneut.", name:"Name", phone:"Telefon", email:"Email", people:"Personen", note:"Notiz (optional)", submit:"Senden" },
-  es:{ title:"Reserva Alley Cat", noDates:"No hay fechas disponibles", noTimes:"No hay horarios disponibles", required:"¡Por favor complete todos los campos obligatorios!", success:"¡Gracias por su reserva!", submitFail:"Error al enviar. Por favor, inténtelo de nuevo.", name:"Nombre", phone:"Teléfono", email:"Email", people:"Personas", note:"Nota (opcional)", submit:"Enviar" },
-  th:{ title:"การจอง Alley Cat", noDates:"ไม่มีวันที่สามารถจองได้", noTimes:"ไม่มีเวลาที่สามารถจองได้", required:"กรุณากรอกข้อมูลที่จำเป็นทั้งหมด!", success:"ขอบคุณสำหรับการจอง!", submitFail:"ส่งข้อมูลล้มเหลว โปรดลองอีกครั้ง", name:"ชื่อ", phone:"โทร", email:"Email", people:"จำนวนคน", note:"หมายเหตุ (ไม่บังคับ)", submit:"ส่ง" }
+  en:{ title:"Alley Cat Reservation", noDates:"No available dates", noTimes:"No available times", required:"Please fill in all required fields!", success:"Thank you for your booking!", submitFail:"Submission failed. Please try again.", name:"Name", phone:"Phone", email:"Email", people:"People", note:"Note (optional)", submit:"Submit" }
+  // 可依需要加入其他語系
 };
 const L = i18n[lang] || i18n.en;
 
 // 更新文字
 document.getElementById('title').textContent = L.title;
-document.getElementById('name').placeholder = L.name;
-document.getElementById('phone').placeholder = L.phone;
-document.getElementById('email').placeholder = L.email;
-document.getElementById('people').placeholder = L.people;
-document.getElementById('note').placeholder = L.note;
+document.getElementById('nameInput').placeholder = L.name;
+document.getElementById('phoneInput').placeholder = L.phone;
+document.getElementById('emailInput').placeholder = L.email;
+document.getElementById('peopleInput').placeholder = L.people;
+document.getElementById('noteInput').placeholder = L.note;
 document.getElementById('submitBtn').textContent = L.submit;
 
 let selectedDate = "";
 let selectedTime = "";
 let dateData = [];
 
-// 日期格式化 (Oct 27 + Mon)
+// 日期格式化
 function formatDate(dateStr){
   const d = new Date(dateStr);
   const optionsDay = { month:'short', day:'numeric'};
@@ -212,7 +155,8 @@ function createTimeButtons(times){
   }
   times.forEach(t=>{
     const btn = document.createElement('button');
-    btn.className="time-btn";
+    btn.type = "button";
+    btn.className = "time-btn";
     btn.textContent = t;
     btn.addEventListener('click', ()=>{
       container.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));
@@ -262,48 +206,29 @@ async function fetchDates(){
     console.error("❌ 取得日期資料失敗:", err);
   }
 }
+document.addEventListener('DOMContentLoaded', fetchDates);
 
-// ======================
-// 送出預約資料給 GAS
-// ======================
-<form id="reservationForm" method="POST" action="https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec">
-  <input type="hidden" name="action" value="submitReservation">
-  <input type="hidden" name="date" id="dateInput">
-  <input type="hidden" name="time" id="timeInput">
-  <input type="text" name="name" id="name" placeholder="Name" required>
-  <input type="text" name="phone" id="phone" placeholder="Phone" required>
-  <input type="email" name="email" id="email" placeholder="Email" required>
-  <input type="number" name="people" id="people" placeholder="People" required>
-  <textarea name="note" id="note" placeholder="Note"></textarea>
-  <input type="hidden" name="lang" id="langInput">
+// 表單提交事件
+document.getElementById('reservationForm').addEventListener('submit', function(e){
+  const msg = document.getElementById('message');
+  msg.textContent = "";
+  
+  if(!selectedDate || !selectedTime){
+    msg.textContent = L.required;
+    msg.style.color = "tomato";
+    e.preventDefault();
+    return;
+  }
 
-  <button type="submit" id="submitBtn">Submit</button>
-</form>
+  document.getElementById('dateInput').value = selectedDate;
+  document.getElementById('timeInput').value = selectedTime;
+  document.getElementById('langInput').value = lang;
 
-<p id="message"></p>
-
-<script>
-  // 在表單提交前，把 JS 變數填進隱藏欄位
-  document.getElementById('reservationForm').addEventListener('submit', function(e) {
-    const msg = document.getElementById('message');
-    msg.textContent = "";
-
-    if (!selectedDate || !selectedTime) {
-      msg.textContent = L.required;
-      msg.style.color = "tomato";
-      e.preventDefault(); // 阻止提交
-      return;
-    }
-
-    document.getElementById('dateInput').value = selectedDate;
-    document.getElementById('timeInput').value = selectedTime;
-    document.getElementById('langInput').value = lang;
-
-    msg.textContent = "Submitting...";
-    msg.style.color = "lightblue";
-    // 表單會自動提交，不需要 fetch
-  });
+  msg.textContent = "Submitting...";
+  msg.style.color = "lightblue";
+  // 表單會自動送出，不使用 fetch，避免 CORS
+});
 </script>
+
 </body>
 </html>
-
