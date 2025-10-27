@@ -163,7 +163,8 @@
 <footer><img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8B.png?raw=true" alt="Bottom Image"></footer>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyp4zKV7mYdbT0hXSvEYcN1H-bpmgLMQV7vpV5IfZNPa8UoCe4qu1DD4PyyHh1w4jE9YA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyhrlDU5xYdx1xQM-tUhrdFISJ8imUiDrtboy8wsH1IjJdZAvZd83pmdi_doMSPXmZmw/exec";
+
 
 
 // 多國語系
@@ -262,55 +263,79 @@ async function fetchDates(){
   }
 }
 
-// 送出預約
-document.getElementById('submitBtn').addEventListener('click', async ()=>{
+// ======================
+// 送出預約資料給 GAS
+// ======================
+document.getElementById('submitBtn').addEventListener('click', async () => {
   const msg = document.getElementById('message');
   msg.textContent = "";
 
+  // 取得表單欄位
   const name = document.getElementById('name').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const email = document.getElementById('email').value.trim();
   const people = document.getElementById('people').value.trim();
   const note = document.getElementById('note').value.trim();
 
-  if(!selectedDate || !selectedTime || !name || !phone || !email || !people){
+  // 檢查欄位是否填寫
+  if (!selectedDate || !selectedTime || !name || !phone || !email || !people) {
     msg.textContent = L.required;
-    msg.style.color="tomato";
+    msg.style.color = "tomato";
     return;
   }
 
   const btn = document.getElementById('submitBtn');
   btn.classList.add("loading");
 
-  const payload = { 
-    action: "submitReservation", 
-    date: selectedDate, 
-    time: selectedTime, 
-    name, phone, email, people, note,
+  // === 準備傳送資料 ===
+  const payload = {
+    action: "submitReservation",
+    date: selectedDate,
+    time: selectedTime,
+    name,
+    phone,
+    email,
+    people,
+    note,
     lang
   };
 
-  try{
-    const res = await fetch(SCRIPT_URL,{
+  try {
+    console.log("📤 Sending to GAS:", payload);
+
+    // 🚀 發送請求到你的 GAS Web App（必須是 /exec、任何人可訪問）
+    const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" }, // ✅ 一定要加
-      body: JSON.stringify(payload)
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
-    const result = await res.json();
+    console.log("📩 Response status:", res.status, res.statusText);
 
-    console.log("📥 GAS response:", result); // ✅ GAS 回傳 log
+    // 檢查回應是否成功
+    if (!res.ok) {
+      throw new Error(`HTTP error ${res.status}`);
+    }
+
+    // 解析回傳結果
+    const result = await res.json();
+    console.log("📥 GAS response:", result);
+
+    // 顯示成功或失敗訊息
     msg.textContent = result.success ? L.success : L.submitFail;
     msg.style.color = result.success ? "lightgreen" : "tomato";
 
-  }catch(e){
+  } catch (e) {
     console.error("❌ Submission error:", e);
     msg.textContent = L.submitFail;
     msg.style.color = "tomato";
-  }finally{
+  } finally {
     btn.classList.remove("loading");
   }
 });
+
 
 
 document.addEventListener('DOMContentLoaded', fetchDates);
