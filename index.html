@@ -71,7 +71,6 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { 100% { transform:translate(50%, -50%) rotate(360deg); } }
-  .message { margin-top:16px; font-size:14px; }
 </style>
 </head>
 <body>
@@ -90,26 +89,23 @@
   <div id="timeContainer"></div>
 
   <!-- 表單 -->
-<form id="reservationForm" method="POST" action="YOUR_SCRIPT_URL" target="hidden_iframe">
-  <input type="hidden" name="action" value="submitReservation">
-  <input type="hidden" id="dateInput" name="date">
-  <input type="hidden" id="timeInput" name="time">
-  <input type="hidden" id="langInput" name="lang">
+  <form id="reservationForm" method="POST" action="https://script.google.com/macros/s/AKfycbySL1SJdGrwNZ7uR88YXG6nK-Bt0ssHa9S_L2C5b0xL5DRD9SgJ20kFTI6kDllx1eNqew/exec" target="hidden_iframe">
+    <input type="hidden" name="action" value="submitReservation">
+    <input type="hidden" id="dateInput" name="date">
+    <input type="hidden" id="timeInput" name="time">
+    <input type="hidden" id="langInput" name="lang">
 
-  <input id="name" name="name" placeholder="姓名">
-  <input id="phone" name="phone" placeholder="電話">
-  <input id="email" name="email" placeholder="Email">
-  <input id="people" name="people" placeholder="人數">
-  <textarea id="note" name="note" placeholder="備註"></textarea>
+    <input id="nameInput" name="name" placeholder="姓名" required>
+    <input id="phoneInput" name="phone" placeholder="電話" required>
+    <input id="emailInput" name="email" placeholder="Email" required>
+    <input id="peopleInput" name="people" placeholder="人數" required>
+    <textarea id="noteInput" name="note" placeholder="備註 (可不填)"></textarea>
 
-  <button type="submit" id="submitBtn">送出</button>
-  <div id="message"></div>
-</form>
+    <button type="submit" id="submitBtn">送出</button>
+    <div class="message" id="message"></div>
+  </form>
 
-<iframe name="hidden_iframe" style="display:none;"></iframe>
-
-
-  <div class="message" id="message"></div>
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
 </div>
 
 <footer>
@@ -117,14 +113,12 @@
 </footer>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySL1SJdGrwNZ7uR88YXG6nK-Bt0ssHa9S_L2C5b0xL5DRD9SgJ20kFTI6kDllx1eNqew/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywwsqiPYJC7PBdgkU0iSz8TNFfLT43jZW3fwmdIdphX_CQclFrqSVeZ65M7NE_-VEYow/exec";
 
-// 多國語系
 const lang = navigator.language.slice(0,2);
 const i18n = {
-  zh:{ title:"Alley Cat 訂位", noDates:"無可預訂日期", noTimes:"無可預訂時間", required:"請填寫所有必填欄位！", success:"感謝您的訂位！", submitFail:"送出失敗，請稍後再試。", name:"姓名", phone:"電話", email:"Email", people:"人數", note:"備註 (可不填)", submit:"送出" },
-  en:{ title:"Alley Cat Reservation", noDates:"No available dates", noTimes:"No available times", required:"Please fill in all required fields!", success:"Thank you for your booking!", submitFail:"Submission failed. Please try again.", name:"Name", phone:"Phone", email:"Email", people:"People", note:"Note (optional)", submit:"Submit" }
-  // 可依需要加入其他語系
+  zh:{ title:"Alley Cat 訂位", noDates:"無可預訂日期", noTimes:"無可預訂時間", required:"請填寫所有必填欄位！", success:"感謝您的訂位！", name:"姓名", phone:"電話", email:"Email", people:"人數", note:"備註 (可不填)", submit:"送出" },
+  en:{ title:"Alley Cat Reservation", noDates:"No available dates", noTimes:"No available times", required:"Please fill in all required fields!", success:"Thank you for your booking!", name:"Name", phone:"Phone", email:"Email", people:"People", note:"Note (optional)", submit:"Submit" }
 };
 const L = i18n[lang] || i18n.en;
 
@@ -149,7 +143,6 @@ function formatDate(dateStr){
   return { day:d.toLocaleDateString('en-US', optionsDay), week:d.toLocaleDateString('en-US', optionsWeek) };
 }
 
-// 生成時間按鈕
 function createTimeButtons(times){
   const container = document.getElementById('timeContainer');
   container.innerHTML = '';
@@ -171,7 +164,6 @@ function createTimeButtons(times){
   });
 }
 
-// 日期滑動選單
 function createDateSlider(dates){
   const slider = document.getElementById('dateSlider');
   slider.innerHTML = '';
@@ -199,7 +191,6 @@ function createDateSlider(dates){
   });
 }
 
-// 取得日期資料
 async function fetchDates(){
   try{
     const res = await fetch(`${SCRIPT_URL}?action=getAvailableTimes`);
@@ -212,7 +203,6 @@ async function fetchDates(){
 }
 document.addEventListener('DOMContentLoaded', fetchDates);
 
-// 表單提交事件
 document.getElementById('reservationForm').addEventListener('submit', function (e) {
   const msg = document.getElementById('message');
   msg.textContent = "";
@@ -224,7 +214,6 @@ document.getElementById('reservationForm').addEventListener('submit', function (
     return;
   }
 
-  // 填入隱藏欄位
   document.getElementById('dateInput').value = selectedDate;
   document.getElementById('timeInput').value = selectedTime;
   document.getElementById('langInput').value = lang;
@@ -232,15 +221,12 @@ document.getElementById('reservationForm').addEventListener('submit', function (
   msg.textContent = "Submitting...";
   msg.style.color = "lightblue";
 
-  // 🚀 在 iframe 載入完成後，顯示成功訊息（不跳頁）
   const iframe = document.querySelector('iframe[name="hidden_iframe"]');
   iframe.onload = () => {
     msg.textContent = L.success;
     msg.style.color = "lightgreen";
   };
 });
-
 </script>
-
 </body>
 </html>
