@@ -90,20 +90,24 @@
   <div id="timeContainer"></div>
 
   <!-- 表單 -->
-  <form id="reservationForm" method="POST" action="https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec">
-    <input type="hidden" name="action" value="submitReservation">
-    <input type="hidden" name="date" id="dateInput">
-    <input type="hidden" name="time" id="timeInput">
-    <input type="hidden" name="lang" id="langInput">
+<form id="reservationForm" method="POST" action="YOUR_SCRIPT_URL" target="hidden_iframe">
+  <input type="hidden" name="action" value="submitReservation">
+  <input type="hidden" id="dateInput" name="date">
+  <input type="hidden" id="timeInput" name="time">
+  <input type="hidden" id="langInput" name="lang">
 
-    <input type="text" name="name" id="nameInput" placeholder="" required>
-    <input type="tel" name="phone" id="phoneInput" placeholder="" required>
-    <input type="email" name="email" id="emailInput" placeholder="" required>
-    <input type="number" name="people" id="peopleInput" placeholder="" required>
-    <textarea name="note" id="noteInput" placeholder=""></textarea>
+  <input id="name" name="name" placeholder="姓名">
+  <input id="phone" name="phone" placeholder="電話">
+  <input id="email" name="email" placeholder="Email">
+  <input id="people" name="people" placeholder="人數">
+  <textarea id="note" name="note" placeholder="備註"></textarea>
 
-    <button type="submit" id="submitBtn"></button>
-  </form>
+  <button type="submit" id="submitBtn">送出</button>
+  <div id="message"></div>
+</form>
+
+<iframe name="hidden_iframe" style="display:none;"></iframe>
+
 
   <div class="message" id="message"></div>
 </div>
@@ -113,7 +117,7 @@
 </footer>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_RLn3zHEGa8uKoysFkRx4XlHoQz4aiGrhdVy5cY7NIWyifqctZFR4exYvN6yTcOPC/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySL1SJdGrwNZ7uR88YXG6nK-Bt0ssHa9S_L2C5b0xL5DRD9SgJ20kFTI6kDllx1eNqew/exec";
 
 // 多國語系
 const lang = navigator.language.slice(0,2);
@@ -209,25 +213,33 @@ async function fetchDates(){
 document.addEventListener('DOMContentLoaded', fetchDates);
 
 // 表單提交事件
-document.getElementById('reservationForm').addEventListener('submit', function(e){
+document.getElementById('reservationForm').addEventListener('submit', function (e) {
   const msg = document.getElementById('message');
   msg.textContent = "";
-  
-  if(!selectedDate || !selectedTime){
+
+  if (!selectedDate || !selectedTime) {
     msg.textContent = L.required;
     msg.style.color = "tomato";
     e.preventDefault();
     return;
   }
 
+  // 填入隱藏欄位
   document.getElementById('dateInput').value = selectedDate;
   document.getElementById('timeInput').value = selectedTime;
   document.getElementById('langInput').value = lang;
 
   msg.textContent = "Submitting...";
   msg.style.color = "lightblue";
-  // 表單會自動送出，不使用 fetch，避免 CORS
+
+  // 🚀 在 iframe 載入完成後，顯示成功訊息（不跳頁）
+  const iframe = document.querySelector('iframe[name="hidden_iframe"]');
+  iframe.onload = () => {
+    msg.textContent = L.success;
+    msg.style.color = "lightgreen";
+  };
 });
+
 </script>
 
 </body>
