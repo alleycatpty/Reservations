@@ -120,9 +120,28 @@ document.getElementById('reservationForm').action = SCRIPT_URL;
 
 const lang = navigator.language.slice(0,2);
 const i18n = {
-  zh:{ title:"Alley Cat 訂位", noDates:"無可預訂日期", noTimes:"無可預訂時間", required:"請填寫所有必填欄位！", success:"感謝您的訂位！", name:"姓名", phone:"電話", email:"Email", people:"人數", note:"備註 (可不填)", submit:"送出" },
-  en:{ title:"Alley Cat Reservation", noDates:"No available dates", noTimes:"No available times", required:"Please fill in all required fields!", success:"Thank you for your booking!", name:"Name", phone:"Phone", email:"Email", people:"People", note:"Note (optional)", submit:"Submit" }
+  zh:{ 
+    title:"Alley Cat 訂位", 
+    noDates:"無可預訂日期", 
+    noTimes:"無可預訂時間", 
+    required:"請填寫所有必填欄位！", 
+    success:"感謝您的訂位！", 
+    sending:"送出中...", 
+    thankYou:"感謝你的訂位！", // 新增感謝訊息
+    name:"姓名", phone:"電話", email:"Email", people:"人數", note:"備註 (可不填)", submit:"送出" 
+  },
+  en:{ 
+    title:"Alley Cat Reservation", 
+    noDates:"No available dates", 
+    noTimes:"No available times", 
+    required:"Please fill in all required fields!", 
+    success:"Thank you for your booking!", 
+    sending:"Submitting...", 
+    thankYou:"Thank you for your booking!", 
+    name:"Name", phone:"Phone", email:"Email", people:"People", note:"Note (optional)", submit:"Submit" 
+  }
 };
+
 const L = i18n[lang] || i18n.en;
 
 // 更新文字
@@ -208,8 +227,10 @@ document.addEventListener('DOMContentLoaded', fetchDates);
 
 document.getElementById('reservationForm').addEventListener('submit', function (e) {
   const msg = document.getElementById('message');
+  const btn = document.querySelector('button[type="submit"]');
   msg.textContent = "";
 
+  // 檢查日期與時間是否已選
   if (!selectedDate || !selectedTime) {
     msg.textContent = L.required;
     msg.style.color = "tomato";
@@ -217,22 +238,30 @@ document.getElementById('reservationForm').addEventListener('submit', function (
     return;
   }
 
+  // 禁用按鈕，避免重複送出
+  btn.disabled = true;
+  btn.style.opacity = "0.6";
+  btn.textContent = L.sending || "Submitting...";
+
+  // 填入隱藏欄位
   document.getElementById('dateInput').value = selectedDate;
   document.getElementById('timeInput').value = selectedTime;
   document.getElementById('langInput').value = lang;
 
-  msg.textContent = "Submitting...";
-  msg.style.color = "lightblue";
-
-  const iframe = document.querySelector('iframe[name="hidden_iframe"]');
-  iframe.onload = () => {
-    const main = document.getElementById('mainContainer');
-    main.innerHTML = `
-      <img id="logo" src="https://github.com/alleycatpty/Reservations/blob/main/alley%20cat%20logo%20white.png?raw=true" alt="Logo">
-      <h1 style="color:lightgreen;">${L.success}</h1>
+  // ✅ 送出後跳轉到感謝頁面
+  // 可以是同一個頁面顯示感謝訊息，或跳到 /thank-you.html
+  setTimeout(() => {
+    document.body.innerHTML = `
+      <div style="text-align:center; padding:50px; color:#fff; background:#000; min-height:100vh;">
+        <img src="https://github.com/alleycatpty/Reservations/blob/main/alley%20cat%20logo%20white.png?raw=true" style="max-width:150px; margin-bottom:20px;">
+        <h1>${L.thankYou}</h1>
+      </div>
     `;
-  };
+  }, 500); // 等 0.5 秒讓表單真正送出
 });
+
+
 </script>
 </body>
 </html>
+
