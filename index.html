@@ -79,7 +79,7 @@
   <img src="https://github.com/alleycatpty/Reservations/blob/main/%E9%9D%92%E6%B5%B7%E4%B8%8A.png?raw=true" alt="Top Image">
 </header>
 
-<div class="container">
+<div class="container" id="mainContainer">
   <img id="logo" src="https://github.com/alleycatpty/Reservations/blob/main/alley%20cat%20logo%20white.png?raw=true" alt="Logo">
   <h1 id="title"></h1>
 
@@ -89,7 +89,7 @@
   <div id="timeContainer"></div>
 
   <!-- 表單 -->
-  <form id="reservationForm" method="POST" action="https://script.google.com/macros/s/AKfycbySL1SJdGrwNZ7uR88YXG6nK-Bt0ssHa9S_L2C5b0xL5DRD9SgJ20kFTI6kDllx1eNqew/exec" target="hidden_iframe">
+  <form id="reservationForm" method="POST" target="hidden_iframe">
     <input type="hidden" name="action" value="submitReservation">
     <input type="hidden" id="dateInput" name="date">
     <input type="hidden" id="timeInput" name="time">
@@ -115,6 +115,9 @@
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywwsqiPYJC7PBdgkU0iSz8TNFfLT43jZW3fwmdIdphX_CQclFrqSVeZ65M7NE_-VEYow/exec";
 
+// 設定 form action
+document.getElementById('reservationForm').action = SCRIPT_URL;
+
 const lang = navigator.language.slice(0,2);
 const i18n = {
   zh:{ title:"Alley Cat 訂位", noDates:"無可預訂日期", noTimes:"無可預訂時間", required:"請填寫所有必填欄位！", success:"感謝您的訂位！", name:"姓名", phone:"電話", email:"Email", people:"人數", note:"備註 (可不填)", submit:"送出" },
@@ -136,11 +139,16 @@ let selectedTime = "";
 let dateData = [];
 
 // 日期格式化
-function formatDate(dateStr){
+function formatDateLabel(dateStr){
   const d = new Date(dateStr);
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
   const optionsDay = { month:'short', day:'numeric'};
   const optionsWeek = { weekday:'short'};
-  return { day:d.toLocaleDateString('en-US', optionsDay), week:d.toLocaleDateString('en-US', optionsWeek) };
+  return {
+    day: isToday ? "Today" : d.toLocaleDateString('en-US', optionsDay),
+    week: d.toLocaleDateString('en-US', optionsWeek)
+  };
 }
 
 function createTimeButtons(times){
@@ -171,10 +179,10 @@ function createDateSlider(dates){
     slider.innerHTML = `<span style="color:tomato">${L.noDates}</span>`;
     return;
   }
-  dates.forEach((item,index)=>{
+  dates.forEach(item=>{
     const div = document.createElement('div');
     div.className='slider-item';
-    const f = formatDate(item.date);
+    const f = formatDateLabel(item.date);
     div.innerHTML = `<span>${f.day}</span><span>${f.week}</span>`;
     div.addEventListener('click', ()=>{
       slider.querySelectorAll('.slider-item').forEach(d=>d.classList.remove('selected'));
@@ -183,11 +191,6 @@ function createDateSlider(dates){
       createTimeButtons(item.time);
     });
     slider.appendChild(div);
-    if(index===0){
-      div.classList.add('selected');
-      selectedDate = item.date;
-      createTimeButtons(item.time);
-    }
   });
 }
 
@@ -223,8 +226,11 @@ document.getElementById('reservationForm').addEventListener('submit', function (
 
   const iframe = document.querySelector('iframe[name="hidden_iframe"]');
   iframe.onload = () => {
-    msg.textContent = L.success;
-    msg.style.color = "lightgreen";
+    const main = document.getElementById('mainContainer');
+    main.innerHTML = `
+      <img id="logo" src="https://github.com/alleycatpty/Reservations/blob/main/alley%20cat%20logo%20white.png?raw=true" alt="Logo">
+      <h1 style="color:lightgreen;">${L.success}</h1>
+    `;
   };
 });
 </script>
